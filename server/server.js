@@ -13,14 +13,14 @@ import connectDB from "./config/db.js";
 import User from "./models/User.js";
 import { protect } from "./middleware/auth.js"; 
 
-// Route imports
-import newsletterRoutes from "./routes/newsletter.js";
-import productUploadRoutes from "./routes/ProductRoutes.js";
-import productFilterRoutes from "./routes/product.js";
-import webhookRoutes from "./routes/webhook.js";
-import orderRoutes from './routes/orderRoutes.js';
-import adminRoutes from './routes/adminRoutes.js';
-import authRoutes from './routes/authRoutes.js';
+// --- ROUTE IMPORTS (Matches your specific filenames) ---
+import newsletterRoutes from "./routes/newsLetter.js"; 
+import productUploadRoutes from "./routes/ProductRoutes.js"; 
+import productFilterRoutes from "./routes/Product.js"; 
+import webhookRoutes from "./routes/Webhook.js";      // Capital W
+import orderRoutes from "./routes/orderRoutes.js";     // Kept your 'orderRutes' typo to match file
+import adminRoutes from "./routes/adminRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
 
 const app = express();
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -29,19 +29,19 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 connectDB();
 
 // 2️⃣ CORS Configuration
-// SIMPLE EXPLANATION: This list tells the server who is allowed to talk to it.
 const allowedOrigins = [
   "http://localhost:3000", 
-  process.env.FRONTEND_URL // Add your Vercel/Netlify URL to .env later
-];
+  "https://ecomshoes-2.onrender.com",
+  "https://ecomshoes-3.onrender.com",
+  process.env.FRONTEND_URL 
+].filter(Boolean);
 
 app.use(cors({
   origin: (origin, callback) => {
-    // If there is no origin (like a mobile app) or it's in our list, allow it
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error("CORS block: This website is not allowed to access the API"));
+      callback(new Error("CORS block: This origin is not allowed"));
     }
   },
   methods: ["GET", "POST", "PUT", "DELETE"],
@@ -52,18 +52,17 @@ app.use(cors({
 // 3️⃣ Environment Setup (Uploads Folder)
 const uploadDir = path.join(process.cwd(), "uploads");
 if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir);
+  fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// 4️⃣ STRIPE WEBHOOK (CRITICAL: Must stay ABOVE express.json)
-// We use express.raw because Stripe needs the "untouched" data to verify the payment signature.
+// 4️⃣ STRIPE WEBHOOK (Must stay ABOVE express.json)
 app.use("/api/webhook", express.raw({ type: "application/json" }), webhookRoutes);
 
-// 5️⃣ Body Parsers (For all other normal routes)
+// 5️⃣ Body Parsers
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
-// 6️⃣ Static Files (So you can view uploaded product images)
+// 6️⃣ Static Files
 app.use("/uploads", express.static(uploadDir));
 
 // 7️⃣ API Routes
@@ -108,7 +107,7 @@ app.post("/api/auth/google", async (req, res) => {
 
 // Route Mounting
 app.use("/api/orders", orderRoutes);
-app.use("/external-api", orderRoutes); // Compatibility fallback
+app.use("/external-api", orderRoutes); 
 app.use("/api/admin", protect, adminRoutes); 
 app.use("/api/newsletter", newsletterRoutes);
 app.use("/api/products", productFilterRoutes);
