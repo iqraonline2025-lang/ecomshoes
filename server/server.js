@@ -32,7 +32,7 @@ connectDB();
 const allowedOrigins = [
   "http://localhost:3000", 
   "https://ecomshoes-9.onrender.com",
-  "https://ecomshoes-3.onrender.com",
+  "https://ecomshoes-8.onrender.com",
   process.env.FRONTEND_URL 
 ].filter(Boolean);
 
