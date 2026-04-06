@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { Search, ShoppingCart, User, Heart, Menu, LogOut, X } from 'lucide-react';
-import Link from 'next/link';
+import Link from 'link';
 import { useRouter } from 'next/navigation';
 import { googleLogout } from '@react-oauth/google';
 
@@ -30,6 +30,15 @@ const Navbar = () => {
     return () => window.removeEventListener('local-storage-update', updateCounts);
   }, []);
 
+  const handleLogout = () => {
+    googleLogout();
+    localStorage.removeItem("shoeStoreToken");
+    localStorage.removeItem("shoeStoreUser");
+    setUserData(null);
+    window.dispatchEvent(new Event('local-storage-update'));
+    router.push('/');
+  };
+
   const executeSearch = () => {
     if (searchQuery.trim() !== "") {
       router.push(`/category?search=${encodeURIComponent(searchQuery.trim())}`);
@@ -51,20 +60,10 @@ const Navbar = () => {
       <div className="border-b border-gray-100 bg-white">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-8">
           
-          {/* 2. MOBILE CONTROLS (Visible on small screens) */}
+          {/* 2. MOBILE CONTROLS */}
           <div className="flex md:hidden items-center gap-5">
-            <button 
-              onClick={() => setIsMenuOpen(true)} 
-              className="p-2 -ml-2 text-black hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <Menu size={26} strokeWidth={2.5} />
-            </button>
-            <button 
-              onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)} 
-              className={`p-2 rounded-lg transition-colors ${isMobileSearchOpen ? 'bg-blue-600 text-white' : 'text-black'}`}
-            >
-              <Search size={22} strokeWidth={2.5} />
-            </button>
+            <button onClick={() => setIsMenuOpen(true)} className="text-black"><Menu size={26} /></button>
+            <button onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)} className="text-black"><Search size={22} /></button>
           </div>
 
           {/* 3. LOGO */}
@@ -74,34 +73,44 @@ const Navbar = () => {
             </Link>
           </div>
 
-          {/* 4. DESKTOP NAV */}
+          {/* 4. DESKTOP NAV & SEARCH */}
           <nav className="hidden md:flex items-center space-x-8">
             <Link href="/category" className="text-[11px] font-black text-black hover:text-blue-600 uppercase tracking-widest">Footwear</Link>
             <Link href="/sale" className="text-[11px] font-black text-red-600 hover:text-red-700 uppercase tracking-widest">Sale</Link>
             
-            {/* Desktop Search Input */}
-            <div className="relative group min-w-[200px]">
+            <div className="relative group min-w-[180px]">
               <input
                 type="text"
                 placeholder="SEARCH..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && executeSearch()}
-                className="w-full border-b-2 border-zinc-200 bg-transparent py-1 pr-8 text-[11px] font-bold focus:border-blue-600 focus:outline-none transition-all"
+                className="w-full border-b border-zinc-200 bg-transparent py-1 pr-8 text-[11px] font-bold focus:border-black focus:outline-none"
               />
-              <Search className="absolute right-0 top-1 h-4 w-4 text-zinc-400 group-focus-within:text-blue-600" />
+              <Search className="absolute right-0 top-1 h-4 w-4 text-zinc-400" />
             </div>
           </nav>
 
-          {/* 5. RIGHT ICONS */}
-          <div className="flex flex-1 items-center justify-end space-x-5">
+          {/* 5. RIGHT ACTIONS (Logout Restored Here) */}
+          <div className="flex flex-1 items-center justify-end space-x-4 sm:space-x-6">
             {userData ? (
-              <Link href="/account" className="h-8 w-8 rounded-full bg-zinc-900 border-2 border-white shadow-md flex items-center justify-center text-white text-xs font-black">
-                {getInitial()}
-              </Link>
+              <div className="flex items-center gap-3">
+                <Link href="/account" className="h-8 w-8 rounded-full bg-zinc-900 border-2 border-white shadow-md flex items-center justify-center text-white text-xs font-black">
+                  {getInitial()}
+                </Link>
+                {/* ✅ RESTORED DESKTOP LOGOUT BUTTON */}
+                <button 
+                  onClick={handleLogout} 
+                  className="hidden sm:block text-zinc-400 hover:text-red-600 transition-colors"
+                  title="Logout"
+                >
+                  <LogOut size={18} />
+                </button>
+              </div>
             ) : (
               <Link href="/auth" className="text-black hover:text-blue-600"><User size={22} /></Link>
             )}
+
             <Link href="/cart" className="relative text-black hover:text-blue-600">
               <ShoppingCart size={22} />
               {cartCount > 0 && (
@@ -114,57 +123,52 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* 6. MOBILE SEARCH BAR (Now with dark background for visibility) */}
-      <div className={`md:hidden bg-zinc-900 transition-all duration-300 ease-in-out overflow-hidden ${isMobileSearchOpen ? "max-h-[80px] border-b border-zinc-700" : "max-h-0"}`}>
+      {/* 6. MOBILE SEARCH BAR */}
+      <div className={`md:hidden bg-zinc-900 transition-all duration-300 overflow-hidden ${isMobileSearchOpen ? "max-h-20 border-b border-zinc-700" : "max-h-0"}`}>
         <div className="p-4">
-          <div className="relative flex items-center bg-zinc-800 rounded-full px-4 py-2 border border-zinc-700">
+          <div className="relative flex items-center bg-zinc-800 rounded-full px-4 py-2">
             <input
               type="text"
-              autoFocus
               placeholder="SEARCH KICKS..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && executeSearch()}
-              className="w-full bg-transparent text-white text-sm font-bold placeholder-zinc-500 focus:outline-none"
+              className="w-full bg-transparent text-white text-sm font-bold focus:outline-none"
             />
-            <button onClick={executeSearch} className="ml-2 text-blue-500">
-              <Search size={20} />
-            </button>
+            <button onClick={executeSearch} className="text-blue-500"><Search size={20} /></button>
           </div>
         </div>
       </div>
 
-      {/* 7. HAMBURGER SIDEBAR (Dark Theme & Fixed Z-index) */}
-      {/* Overlay */}
+      {/* 7. HAMBURGER SIDEBAR */}
       <div 
         className={`fixed inset-0 bg-black/70 backdrop-blur-sm z-[1000] transition-opacity duration-300 md:hidden ${isMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`} 
         onClick={() => setIsMenuOpen(false)} 
       />
       
-      {/* Drawer */}
-      <div className={`fixed top-0 left-0 h-full w-[85%] max-w-[320px] bg-zinc-900 text-white z-[1001] shadow-2xl transition-transform duration-500 ease-out md:hidden ${isMenuOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <div className={`fixed top-0 left-0 h-full w-[85%] max-w-[320px] bg-zinc-900 text-white z-[1001] shadow-2xl transition-transform duration-500 md:hidden ${isMenuOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="p-8 flex flex-col h-full">
           <div className="flex items-center justify-between mb-12">
             <span className="text-2xl font-black italic tracking-tighter">ROAD<span className="text-blue-500">KICKS</span></span>
-            <button onClick={() => setIsMenuOpen(false)} className="p-2 bg-zinc-800 rounded-full text-white">
-              <X size={24} />
-            </button>
+            <button onClick={() => setIsMenuOpen(false)}><X size={24} /></button>
           </div>
 
           <nav className="flex flex-col space-y-8">
-            <Link href="/" onClick={() => setIsMenuOpen(false)} className="text-xl font-black uppercase tracking-tighter border-b border-zinc-800 pb-4 hover:text-blue-500 transition-colors">Home</Link>
-            <Link href="/category" onClick={() => setIsMenuOpen(false)} className="text-xl font-black uppercase tracking-tighter border-b border-zinc-800 pb-4 hover:text-blue-500 transition-colors">Footwear</Link>
+            <Link href="/" onClick={() => setIsMenuOpen(false)} className="text-xl font-black uppercase tracking-tighter border-b border-zinc-800 pb-4">Home</Link>
+            <Link href="/category" onClick={() => setIsMenuOpen(false)} className="text-xl font-black uppercase tracking-tighter border-b border-zinc-800 pb-4">Footwear</Link>
             <Link href="/sale" onClick={() => setIsMenuOpen(false)} className="text-xl font-black uppercase tracking-tighter border-b border-zinc-800 pb-4 text-red-500">Sale</Link>
-            <Link href="/wishlist" onClick={() => setIsMenuOpen(false)} className="text-xl font-black uppercase tracking-tighter border-b border-zinc-800 pb-4">Wishlist</Link>
           </nav>
 
           <div className="mt-auto pt-10">
             {userData ? (
-              <button onClick={() => { googleLogout(); localStorage.clear(); window.location.reload(); }} className="flex items-center gap-3 text-zinc-400 font-bold uppercase tracking-widest text-xs">
+              <button 
+                onClick={handleLogout} 
+                className="flex items-center gap-3 text-zinc-400 font-bold uppercase tracking-widest text-xs"
+              >
                 <LogOut size={18} /> Logout
               </button>
             ) : (
-              <Link href="/auth" onClick={() => setIsMenuOpen(false)} className="bg-blue-600 w-full py-4 rounded-xl text-center font-black uppercase tracking-widest text-sm">Sign In</Link>
+              <Link href="/auth" onClick={() => setIsMenuOpen(false)} className="bg-blue-600 block w-full py-4 rounded-xl text-center font-black uppercase tracking-widest text-sm">Sign In</Link>
             )}
           </div>
         </div>
