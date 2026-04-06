@@ -11,34 +11,51 @@ export default function ProductGrid({ activeFilters = {} }) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  // ✅ Step 1: Dynamic API URL
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);
     try {
-      // ✅ Step 2: Build search query from active filters
-      const query = new URLSearchParams({
-        category: activeFilters.category || '',
-        brand: activeFilters.brand?.join(',') || '',
-        maxPrice: activeFilters.maxPrice || '',
-        _t: Date.now() // Prevent aggressive browser caching
-      }).toString();
+      const queryParams = new URLSearchParams();
+      
+      // ✅ 1. ADD SEARCH
+      if (activeFilters.search) queryParams.append('search', activeFilters.search);
+      
+      // ✅ 2. ADD SALE FLAG (Crucial for the Sale Page)
+      if (activeFilters.onSale) queryParams.append('onSale', 'true');
+      
+      // ✅ 3. ADD CATEGORY
+      if (activeFilters.category) queryParams.append('category', activeFilters.category);
+      
+      // ✅ 4. ADD BRAND (Handle array)
+      if (activeFilters.brand && activeFilters.brand.length > 0) {
+        queryParams.append('brand', activeFilters.brand.join(','));
+      }
+      
+      // ✅ 5. ADD PRICE & SORT
+      if (activeFilters.maxPrice) queryParams.append('maxPrice', activeFilters.maxPrice);
+      if (activeFilters.sort) queryParams.append('sort', activeFilters.sort);
+      
+      queryParams.append('_t', Date.now().toString());
 
-      const res = await fetch(`${API_URL}/api/products?${query}`);
+      const res = await fetch(`${API_URL}/api/products?${queryParams.toString()}`);
       const result = await res.json();
 
       if (result.success) {
-        // Handle variations in backend response naming (products vs data)
         const rawItems = result.products || result.data || [];
 
-        // ✅ Step 3: Global Filter - Exclude Flash Sales from the main grid
-        const regularItems = rawItems.filter(p => {
-          const isFlash = p.isFlashSale === true || p.isFlashSale === 'true';
-          return !isFlash;
-        });
-
-        setProducts(regularItems);
+        // ✅ LOGIC CHECK: 
+        // If we are on the SALE page, we WANT to show flash sales.
+        // If we are on the REGULAR shop page, we HIDE flash sales.
+        if (activeFilters.onSale) {
+            setProducts(rawItems);
+        } else {
+            const regularItems = rawItems.filter(p => {
+                const isFlash = p.isFlashSale === true || p.isFlashSale === 'true';
+                return !isFlash;
+            });
+            setProducts(regularItems);
+        }
       }
     } catch (error) {
       console.error("ProductGrid Error:", error);
@@ -51,11 +68,9 @@ export default function ProductGrid({ activeFilters = {} }) {
     fetchProducts();
   }, [fetchProducts]);
 
-  // ✅ Step 4: Guard for Cart/Wishlist actions
   const handleProtectedAction = (actionCallback) => {
     const token = localStorage.getItem('shoeStoreToken');
     if (!token) {
-      // Redirect to login if user isn't authenticated
       router.push('/auth');
       return;
     }
@@ -64,7 +79,6 @@ export default function ProductGrid({ activeFilters = {} }) {
 
   return (
     <div className="w-full py-12">
-      {/* Container for smooth grid transitions */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 min-h-[400px]">
         <AnimatePresence mode="popLayout">
           {products.length > 0 ? (
@@ -90,9 +104,17 @@ export default function ProductGrid({ activeFilters = {} }) {
                 animate={{ opacity: 1 }}
                 className="col-span-full flex flex-col items-center justify-center py-20 text-zinc-400"
               >
-                <p className="text-[10px] font-black uppercase tracking-[0.3em]">
-                  No matches in current inventory.
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-center">
+                  No matches found in the ROADKICKS vault.
                 </p>
+                {(activeFilters.search || activeFilters.category) && (
+                  <button 
+                    onClick={() => router.push('/category')}
+                    className="mt-4 text-[9px] underline uppercase tracking-widest text-zinc-600 hover:text-black"
+                  >
+                    Reset All Filters
+                  </button>
+                )}
               </motion.div>
             )
           )}

@@ -1,18 +1,18 @@
 import mongoose from 'mongoose';
 
 const OrderSchema = new mongoose.Schema({
-  // 🆕 Better practice: Link to the User model specifically
   userId: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'User', 
     required: true 
   }, 
   items: [{
+    // Ensure this matches the controller's 'formattedItems'
     productId: { type: String, required: true },
     name: { type: String, required: true },
     quantity: { type: Number, required: true },
     price: { type: Number, required: true },
-    selectedSize: { type: String },
+    size: { type: String, default: 'Standard' }, // Renamed from selectedSize to size to match controller
     image: { type: String }
   }],
   shippingDetails: {
@@ -33,15 +33,14 @@ const OrderSchema = new mongoose.Schema({
   total: { type: Number, required: true },
   status: {
     type: String,
-    enum: ['pending', 'paid', 'shipped', 'delivered', 'cancelled'], // Added 'delivered'
+    enum: ['pending', 'paid', 'shipped', 'delivered', 'cancelled'],
     default: 'pending'
   },
-  // 🆕 Quick check for the frontend UI
   isPaid: { 
     type: Boolean, 
     default: false 
   },
-  paymentMethod: { type: String },
+  paymentMethod: { type: String, default: 'Stripe' },
   stripeSessionId: { type: String, unique: true, sparse: true },
   customerEmail: { type: String },
   paidAt: { type: Date }

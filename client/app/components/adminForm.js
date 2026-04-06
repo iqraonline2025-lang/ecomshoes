@@ -1,11 +1,13 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { Upload, X, Loader2 } from 'lucide-react';
+import { Upload, X, Loader2, CheckCircle2 } from 'lucide-react';
 
 export default function AdminAddProduct() {
   const [images, setImages] = useState([]); 
   const [previews, setPreviews] = useState([]); 
-  const [loading, setLoading] = useState(false); // Added loading state
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState({ type: '', msg: '' });
+
   const [formData, setFormData] = useState({
     name: '',
     brand: '',
@@ -18,7 +20,6 @@ export default function AdminAddProduct() {
     totalStock: 100
   });
 
-  // ✅ Step 1: Define the Dynamic URL
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
   useEffect(() => {
@@ -48,52 +49,47 @@ export default function AdminAddProduct() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (images.length === 0) return alert("Please upload at least one image");
+    if (images.length === 0) return setStatus({ type: 'error', msg: 'Please upload images' });
 
-    setLoading(true); // Start loading
+    setLoading(true);
+    setStatus({ type: '', msg: '' });
+
     const data = new FormData();
     
-    // 1. Clean Sizes
-    const sizeArray = formData.sizes
-      .split(',')
-      .map(s => Number(s.trim()))
-      .filter(n => !isNaN(n));
+    // Clean Arrays
+    const sizeArray = formData.sizes.split(',').map(s => s.trim()).filter(Boolean);
+    const colorArray = formData.colors.split(',').map(c => c.trim()).filter(Boolean);
 
-    // 2. Clean Colors
-    const colorArray = formData.colors
-      .split(',')
-      .map(c => c.trim())
-      .filter(c => c !== "");
-
-    // Append standard fields
+    // Append Standard Fields
     data.append('name', formData.name);
     data.append('brand', formData.brand);
     data.append('category', formData.category);
     data.append('newPrice', Number(formData.price));
     data.append('oldPrice', Number(formData.price) + 20); 
     data.append('isFlashSale', formData.isFlashSale);
-    data.append('stockLeft', formData.stockLeft);
-    data.append('totalStock', formData.totalStock);
+    data.append('stockLeft', Number(formData.stockLeft));
+    data.append('totalStock', Number(formData.totalStock));
     
-    data.append('sizes', JSON.stringify(sizeArray));
-    data.append('colors', JSON.stringify(colorArray));
+    // Send as strings (Backend handles the split/parse)
+    data.append('sizes', sizeArray.join(','));
+    data.append('colors', colorArray.join(','));
 
-    // Append images
+    // ✅ FIX: Match backend .array('files')
     images.forEach((file) => {
       data.append('files', file); 
     });
 
     try {
-      // ✅ Step 2: Use Dynamic API_URL
       const res = await fetch(`${API_URL}/api/products/upload`, {
         method: 'POST',
         body: data, 
+        // Note: Fetch sets the correct multipart/form-data boundary automatically
       });
 
       const result = await res.json();
 
-      if (result.success) {
-        alert("🚀 Success! Product is live.");
+      if (res.ok && result.success) {
+        setStatus({ type: 'success', msg: '🚀 Success! Product is live.' });
         setImages([]);
         setPreviews([]);
         setFormData({
@@ -102,13 +98,13 @@ export default function AdminAddProduct() {
             isFlashSale: false, stockLeft: 50, totalStock: 100
         });
       } else {
-        alert("❌ Error: " + (result.error || "Upload failed"));
+        setStatus({ type: 'error', msg: result.error || 'Upload failed' });
       }
     } catch (err) {
       console.error("Upload failed", err);
-      alert("Check backend console connection.");
+      setStatus({ type: 'error', msg: 'Network error. Check backend connection.' });
     } finally {
-      setLoading(false); // Stop loading
+      setLoading(false);
     }
   };
 
@@ -116,9 +112,16 @@ export default function AdminAddProduct() {
     <div className="min-h-screen bg-[#fcfcfc] p-4 md:p-12">
       <div className="max-w-4xl mx-auto">
         <form onSubmit={handleSubmit} className="bg-white border border-gray-100 rounded-[40px] p-8 md:p-12 shadow-sm space-y-10">
-          <header className="space-y-2">
-            <h1 className="text-3xl font-black uppercase italic tracking-tighter">Inventory Control</h1>
-            <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">Add new stock to the database</p>
+          <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-2">
+              <h1 className="text-3xl font-black uppercase italic tracking-tighter">Inventory Control</h1>
+              <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">Add new stock to the database</p>
+            </div>
+            {status.msg && (
+              <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest ${status.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                {status.type === 'success' && <CheckCircle2 size={14} />} {status.msg}
+              </div>
+            )}
           </header>
 
           <section className="space-y-6">
@@ -131,7 +134,7 @@ export default function AdminAddProduct() {
               </label>
 
               {previews.map((url, i) => (
-                <div key={url} className="relative aspect-square rounded-3xl overflow-hidden bg-gray-100 group">
+                <div key={url} className="relative aspect-square rounded-3xl overflow-hidden bg-gray-100 group shadow-inner">
                   <img src={url} alt="preview" className="w-full h-full object-cover" />
                   <button type="button" onClick={() => removeImage(i)} className="absolute top-2 right-2 bg-black text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
                     <X size={14} />
@@ -149,7 +152,7 @@ export default function AdminAddProduct() {
               <Input label="Price ($)" name="price" type="number" value={formData.price} onChange={handleChange} placeholder="120" />
               <div className="flex flex-col gap-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Category</label>
-                <select name="category" value={formData.category} onChange={handleChange} required className="bg-gray-50 rounded-2xl p-4 text-sm font-bold outline-none">
+                <select name="category" value={formData.category} onChange={handleChange} required className="bg-gray-50 rounded-2xl p-4 text-sm font-bold outline-none border-2 border-transparent focus:border-black transition-all">
                   <option value="">Select Category</option>
                   <option value="sneakers">Sneakers</option>
                   <option value="running">Running</option>
@@ -172,7 +175,7 @@ export default function AdminAddProduct() {
             className="w-full bg-black text-white py-6 rounded-3xl font-black uppercase tracking-[0.3em] text-xs hover:bg-zinc-800 transition-all shadow-xl flex items-center justify-center gap-3 disabled:bg-zinc-400"
           >
             {loading ? (
-              <><Loader2 className="animate-spin" size={18} /> Processing...</>
+              <><Loader2 className="animate-spin" size={18} /> Syncing to Vault...</>
             ) : (
               "Push to Database"
             )}
@@ -186,6 +189,6 @@ export default function AdminAddProduct() {
 const Input = ({ label, ...props }) => (
   <div className="flex flex-col gap-2">
     <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">{label}</label>
-    <input {...props} required className="bg-gray-50 border-2 border-transparent focus:border-black focus:bg-white rounded-2xl p-4 text-sm font-bold transition-all outline-none" />
+    <input {...props} required className="bg-gray-50 border-2 border-transparent focus:border-black focus:bg-white rounded-2xl p-4 text-sm font-bold transition-all outline-none shadow-inner" />
   </div>
 );

@@ -1,6 +1,7 @@
 "use client";
 import React from 'react';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 
 const Hero = () => {
   // Animation for the text reveal
@@ -56,26 +57,23 @@ const Hero = () => {
             </motion.p>
           </div>
 
-          {/* Buttons - Sharp & Rectangular */}
+          {/* Shop Button - Linked to Category */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1, duration: 1 }}
-            className="flex flex-col sm:flex-row gap-6 items-center"
+            className="flex items-center"
           >
-            <button className="relative px-12 py-4 bg-black text-white text-xs font-bold uppercase tracking-widest transition-all hover:bg-zinc-800 hover:scale-105 active:scale-95">
-              Shop the Collection
-            </button>
-            
-            <button className="group relative px-12 py-4 border border-zinc-200 text-black text-xs font-bold uppercase tracking-widest overflow-hidden">
-              <span className="relative z-10 transition-colors group-hover:text-white">Featured Categories</span>
-              <div className="absolute inset-0 bg-black translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-            </button>
+            <Link href="/category">
+              <button className="relative px-12 py-4 bg-black text-white text-xs font-bold uppercase tracking-widest transition-all hover:bg-zinc-800 hover:scale-105 active:scale-95">
+                Shop the Collection
+              </button>
+            </Link>
           </motion.div>
         </div>
       </div>
 
-      {/* 3. Decorative Side Elements (The "Nice" Details) */}
+      {/* 3. Decorative Side Elements */}
       <div className="absolute left-10 bottom-10 hidden lg:block">
         <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-[0.5em] [writing-mode:vertical-lr]">
           Scroll to explore

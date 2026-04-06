@@ -33,7 +33,6 @@ const BestSellers = () => {
     }
     
     localStorage.setItem('wishlist', JSON.stringify(currentWishlist));
-    // Trigger Navbar update
     window.dispatchEvent(new Event("storage"));
   };
 
@@ -48,12 +47,8 @@ const BestSellers = () => {
     }
     
     localStorage.setItem('cart', JSON.stringify(existingCart));
-    
-    // UI Feedback
     setAddingId(product.id);
     setTimeout(() => setAddingId(null), 2000);
-
-    // Trigger Navbar update
     window.dispatchEvent(new Event("storage"));
   };
 
@@ -79,18 +74,30 @@ const BestSellers = () => {
             return (
               <motion.div key={product.id} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.1 }} viewport={{ once: true }} className="group relative">
                 <div className="relative aspect-[3/4] overflow-hidden bg-zinc-50 rounded-2xl mb-6">
+                  {/* Image */}
                   <motion.img src={product.image} alt={product.name} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" />
                   
-                  <div className="absolute top-4 right-4 flex flex-col gap-2 translate-x-12 group-hover:translate-x-0 transition-transform duration-500">
-                    <button onClick={(e) => handleWishlist(e, product)} className="p-3 bg-white rounded-full shadow-lg hover:bg-black hover:text-white transition-all">
-                      <Heart size={18} className={isLiked ? "fill-red-500 text-red-500" : ""} />
+                  {/* Action Buttons */}
+                  <div className="absolute top-4 right-4 flex flex-col gap-2 translate-x-16 group-hover:translate-x-0 transition-transform duration-500 ease-out">
+                    {/* Wishlist Button - Added border and text-zinc color for visibility */}
+                    <button 
+                      onClick={(e) => handleWishlist(e, product)} 
+                      className="p-3 bg-white border border-zinc-100 text-zinc-900 rounded-full shadow-xl hover:bg-black hover:text-white transition-all duration-300"
+                    >
+                      <Heart size={18} className={isLiked ? "fill-red-500 text-red-500" : "currentColor"} />
                     </button>
-                    <button onClick={() => handleAddToCart(product)} className="p-3 bg-white rounded-full shadow-lg hover:bg-blue-600 hover:text-white transition-all">
-                      {isAdding ? <Check size={18} /> : <Plus size={18} />}
+
+                    {/* Add to Cart Button - Added border and text-zinc color for visibility */}
+                    <button 
+                      onClick={() => handleAddToCart(product)} 
+                      className="p-3 bg-white border border-zinc-100 text-zinc-900 rounded-full shadow-xl hover:bg-blue-600 hover:text-white transition-all duration-300"
+                    >
+                      {isAdding ? <Check size={18} className="text-green-500" /> : <Plus size={18} />}
                     </button>
                   </div>
                 </div>
 
+                {/* Product Info */}
                 <div className="px-2">
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="text-lg font-black uppercase tracking-tighter leading-tight">{product.name}</h3>

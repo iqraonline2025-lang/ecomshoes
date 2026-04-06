@@ -1,5 +1,5 @@
-import dotenv from "dotenv";
-dotenv.config();
+// 1. MUST BE LINE 1: Load environment variables before ANY other imports
+import 'dotenv/config'; 
 
 import express from "express";
 import cors from "cors";
@@ -13,12 +13,12 @@ import connectDB from "./config/db.js";
 import User from "./models/User.js";
 import { protect } from "./middleware/auth.js"; 
 
-// --- ROUTE IMPORTS (Matches your specific filenames) ---
+// --- ROUTE IMPORTS ---
 import newsletterRoutes from "./routes/newsLetter.js"; 
 import productUploadRoutes from "./routes/ProductRoutes.js"; 
 import productFilterRoutes from "./routes/Product.js"; 
-import webhookRoutes from "./routes/Webhook.js";      // Capital W
-import orderRoutes from "./routes/orderRoutes.js";     // Kept your 'orderRutes' typo to match file
+import webhookRoutes from "./routes/Webhook.js";      
+import orderRoutes from "./routes/orderRoutes.js";     
 import adminRoutes from "./routes/adminRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 
@@ -37,35 +37,35 @@ const allowedOrigins = [
 ].filter(Boolean);
 
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("CORS block: This origin is not allowed"));
-    }
-  },
+  origin: true, // you can later replace with allowedOrigins
+  credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization", "stripe-signature"],
-  credentials: true
+  allowedHeaders: ["Content-Type", "Authorization", "stripe-signature"]
 }));
 
-// 3️⃣ Environment Setup (Uploads Folder)
+// 3️⃣ Request Logger
+app.use((req, res, next) => {
+  console.log(`🚀 ${req.method} request to: ${req.url}`);
+  next();
+});
+
+// 4️⃣ Environment Setup (Uploads Folder)
 const uploadDir = path.join(process.cwd(), "uploads");
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// 4️⃣ STRIPE WEBHOOK (Must stay ABOVE express.json)
+// 5️⃣ STRIPE WEBHOOK
 app.use("/api/webhook", express.raw({ type: "application/json" }), webhookRoutes);
 
-// 5️⃣ Body Parsers
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+// 6️⃣ Body Parsers
+app.use(express.json({ limit: "100mb" }));
+app.use(express.urlencoded({ extended: true, limit: "100mb" }));
 
-// 6️⃣ Static Files
+// 7️⃣ Static Files
 app.use("/uploads", express.static(uploadDir));
 
-// 7️⃣ API Routes
+// 8️⃣ API Routes
 
 // Google Auth Logic
 app.post("/api/auth/google", async (req, res) => {
@@ -75,8 +75,8 @@ app.post("/api/auth/google", async (req, res) => {
       idToken: token,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
-    const { name, email, picture, sub } = ticket.getPayload();
 
+    const { name, email, picture, sub } = ticket.getPayload();
     let user = await User.findOne({ email });
 
     if (!user) {
@@ -97,30 +97,39 @@ app.post("/api/auth/google", async (req, res) => {
 
     res.status(200).json({
       success: true,
-      user: { id: user._id, name: user.name, email: user.email, picture: user.picture, role: user.role },
+      user: { 
+        id: user._id, 
+        name: user.name, 
+        email: user.email, 
+        picture: user.picture, 
+        role: user.role 
+      },
       token: sessionToken,
     });
+
   } catch (error) {
     res.status(401).json({ success: false, message: "Authentication failed" });
   }
 });
 
-// Route Mounting
+// --- ROUTES ---
 app.use("/api/orders", orderRoutes);
-app.use("/external-api", orderRoutes); 
 app.use("/api/admin", protect, adminRoutes); 
 app.use("/api/newsletter", newsletterRoutes);
+app.use("/api/auth", authRoutes);
+
+// ✅ Upload + Product Routes
+app.use("/api/products", productUploadRoutes); 
 app.use("/api/products", productFilterRoutes);
-app.use("/api/products", productUploadRoutes);
-app.use('/api/auth', authRoutes);
 
 app.get("/", (req, res) => {
-  res.status(200).json({ message: "✅ ROADKICKS API running" });
+  res.status(200).json({ message: "✅ ROADKICKS API is Online" });
 });
 
-// 8️⃣ Global Error Handling
+// 9️⃣ Global Error Handler
 app.use((err, req, res, next) => {
-  console.error("❌ Error:", err.message);
+  console.error("❌ SERVER ERROR:", err.message);
+  console.error(err.stack);
   res.status(500).json({ 
     success: false,
     message: err.message || "Internal Server Error"
@@ -128,6 +137,11 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
+
 app.listen(PORT, () => {
-  console.log(`✅ Server live at http://localhost:${PORT}`);
+  console.log(`
+  ******************************************
+  ✅ Server live at http://localhost:${PORT}
+  ******************************************
+  `);
 });

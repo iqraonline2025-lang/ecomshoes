@@ -8,24 +8,57 @@ const Footer = () => {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState('idle'); // 'idle' | 'loading' | 'success'
 
+  // Social Media Configuration
+  const SOCIAL_LINKS = [
+    { 
+      name: 'Instagram', 
+      icon: <Instagram size={20} />, 
+      href: 'https://instagram.com/roadkicks' 
+    },
+    { 
+      name: 'Twitter', 
+      icon: <Twitter size={20} />, 
+      href: 'https://twitter.com/roadkicks' 
+    },
+    { 
+      name: 'Youtube', 
+      icon: <Youtube size={20} />, 
+      href: 'https://youtube.com/roadkicks' 
+    },
+  ];
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email) return;
 
     setStatus('loading');
     
-    // Simulating an API call
-    setTimeout(() => {
+    try {
+      // Replace with your actual Newsletter API endpoint
+      // const response = await fetch('/api/newsletter', {
+      //   method: 'POST',
+      //   body: JSON.stringify({ email }),
+      // });
+      
+      // Simulating API delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
       setStatus('success');
       setEmail('');
-    }, 1500);
+      
+      // Reset status after 5 seconds so they can subscribe again if needed
+      setTimeout(() => setStatus('idle'), 5000);
+    } catch (error) {
+      console.error("Newsletter error:", error);
+      setStatus('idle');
+    }
   };
 
   return (
     <footer className="relative bg-black text-white py-12 md:py-24 px-6 md:px-12 overflow-hidden border-t border-zinc-900">
       <div className="max-w-[1400px] mx-auto relative z-10">
         
-        {/* Top Section */}
+        {/* Top Section: Branding & Newsletter */}
         <div className="flex flex-col lg:flex-row justify-between items-start border-b border-zinc-900 pb-16 md:pb-24 gap-12">
           <div className="max-w-2xl">
             <h2 className="text-[clamp(2.5rem,10vw,7rem)] font-black leading-[0.85] tracking-tighter uppercase italic">
@@ -34,8 +67,7 @@ const Footer = () => {
             </h2>
           </div>
           
-          {/* Newsletter Logic */}
-          <div className="w-full md:w-80 h-24"> {/* Fixed height prevents layout shift */}
+          <div className="w-full md:w-80 h-24">
             <p className="text-zinc-500 text-[10px] font-bold tracking-[0.3em] uppercase mb-6">Newsletter</p>
             
             {status === 'success' ? (
@@ -68,7 +100,7 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Middle Section: Navigation */}
+        {/* Middle Section: Navigation & Socials */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-y-16 gap-x-8 py-16 md:py-24">
           <div className="space-y-8">
             <p className="text-zinc-600 text-[10px] font-black uppercase tracking-[0.4em]">Navigation</p>
@@ -91,14 +123,23 @@ const Footer = () => {
           <div className="space-y-8">
             <p className="text-zinc-600 text-[10px] font-black uppercase tracking-[0.4em]">Social</p>
             <div className="flex gap-8 items-center">
-              <Instagram size={20} className="hover:scale-110 hover:text-zinc-400 transition-all cursor-pointer" />
-              <Twitter size={20} className="hover:scale-110 hover:text-zinc-400 transition-all cursor-pointer" />
-              <Youtube size={20} className="hover:scale-110 hover:text-zinc-400 transition-all cursor-pointer" />
+              {SOCIAL_LINKS.map((social) => (
+                <a 
+                  key={social.name}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={social.name}
+                  className="hover:scale-110 hover:text-zinc-400 transition-all cursor-pointer text-white"
+                >
+                  {social.icon}
+                </a>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Bottom Section */}
+        {/* Bottom Section: Legal */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-6 pt-8 border-t border-zinc-900 text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-600">
           <p>© {currentYear} STUDIO LABS — ALL RIGHTS RESERVED</p>
           <div className="flex gap-10">

@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import Link from 'next/link'; // Import Link for navigation
 
 const Hero = () => {
   return (
@@ -29,9 +30,13 @@ const Hero = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-6">
-            <button className="w-full sm:w-auto px-12 py-5 bg-slate-900 text-white font-bold rounded-2xl hover:bg-orange-500 transition-all duration-300 transform hover:-translate-y-1 shadow-2xl shadow-slate-900/20">
-              SHOP NOW
-            </button>
+            {/* REDIRECT FIXED HERE */}
+            <Link href="/categories" className="w-full sm:w-auto">
+              <button className="w-full px-12 py-5 bg-slate-900 text-white font-bold rounded-2xl hover:bg-orange-500 transition-all duration-300 transform hover:-translate-y-1 shadow-2xl shadow-slate-900/20">
+                SHOP NOW
+              </button>
+            </Link>
+
             <div className="flex items-baseline gap-2">
               <span className="text-slate-400 line-through text-lg">$120.00</span>
               <span className="text-3xl font-black text-slate-900">$59.99</span>
@@ -46,10 +51,10 @@ const Hero = () => {
           
           <div className="relative w-full aspect-square max-w-[600px] transform hover:scale-105 transition-transform duration-700 ease-out">
             <Image
-              src="/images/sh1.jpg" // Path to your image in public folder
+              src="/images/sh1.jpg" 
               alt="Promotional Sneaker"
               fill
-              priority // High priority loading for Hero images
+              priority 
               className="object-contain drop-shadow-[0_50px_50px_rgba(0,0,0,0.3)] rotate-[-15deg]"
             />
             

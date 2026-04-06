@@ -23,7 +23,7 @@ const CheckoutPage = () => {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
 
-  // ✅ Step 1: Define the Dynamic URL
+  // Define the Backend URL
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
   const [checkoutData, setCheckoutData] = useState({
@@ -71,53 +71,45 @@ const CheckoutPage = () => {
   const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, 4));
   const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
 
-  // ✅ Step 2: Update the Place Order fetch call
+  // ✅ Cleaned up Place Order logic
   const handlePlaceOrder = async () => {
-    const token = localStorage.getItem("shoeStoreToken");
-    if (!token) {
-      alert("Please login to complete your order.");
-      router.push('/auth');
-      return;
-    }
-    
-    if (loading || cartItems.length === 0) return;
-
     setLoading(true);
+    
     try {
-      // Changed to the cleaner /api/orders/checkout endpoint
       const response = await fetch(`${API_URL}/api/orders/checkout`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}` 
+          Authorization: `Bearer ${localStorage.getItem("token")}`, 
         },
-        body: JSON.stringify({
-          cartItems,
-          checkoutData: { 
-            ...checkoutData, 
-            email: user?.email, 
-            subtotal, 
-            tax, 
-            total 
-          }
-        })
+        body: JSON.stringify({ 
+          cartItems, 
+          checkoutData: {
+            ...checkoutData,
+            subtotal,
+            tax,
+            total
+          } 
+        }),
       });
 
       const data = await response.json();
-      
-      if (!response.ok) throw new Error(data.message || data.error || "Checkout failed");
 
-      // Redirecting to the Stripe Checkout URL provided by your backend
-      if (data.url) {
-        window.location.href = data.url;
-        return;
+      if (!response.ok) {
+        throw new Error(data.error || data.message || "Checkout failed");
       }
 
-      // Fallback if no URL is provided (Direct Success)
+      // Clear cart locally before redirecting
       localStorage.removeItem("cart");
       window.dispatchEvent(new Event("storage"));
-      router.push("/success");
-      
+
+      // Redirect to Stripe Checkout URL
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        router.push("/success");
+      }
+
     } catch (error) {
       console.error("Checkout Error:", error);
       alert(error.message);
