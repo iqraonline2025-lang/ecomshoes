@@ -1,7 +1,8 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { Search, ShoppingCart, User, Heart, Menu, LogOut, X } from 'lucide-react';
-import Link from 'link';
+// ✅ Fixed: Changed 'link' to 'next/link'
+import Link from 'next/link'; 
 import { useRouter } from 'next/navigation';
 import { googleLogout } from '@react-oauth/google';
 
@@ -37,6 +38,7 @@ const Navbar = () => {
     setUserData(null);
     window.dispatchEvent(new Event('local-storage-update'));
     router.push('/');
+    setIsMenuOpen(false); // Close mobile menu on logout
   };
 
   const executeSearch = () => {
@@ -91,14 +93,14 @@ const Navbar = () => {
             </div>
           </nav>
 
-          {/* 5. RIGHT ACTIONS (Logout Restored Here) */}
+          {/* 5. RIGHT ACTIONS */}
           <div className="flex flex-1 items-center justify-end space-x-4 sm:space-x-6">
             {userData ? (
               <div className="flex items-center gap-3">
                 <Link href="/account" className="h-8 w-8 rounded-full bg-zinc-900 border-2 border-white shadow-md flex items-center justify-center text-white text-xs font-black">
                   {getInitial()}
                 </Link>
-                {/* ✅ RESTORED DESKTOP LOGOUT BUTTON */}
+                {/* Desktop Logout Button */}
                 <button 
                   onClick={handleLogout} 
                   className="hidden sm:block text-zinc-400 hover:text-red-600 transition-colors"
