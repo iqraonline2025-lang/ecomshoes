@@ -7,7 +7,6 @@ import Hero from "../components/Hero";
 import Navbar from "../components/Navbar";
 import NewArrivals from "../components/NewArrivals";
 import Newsletter from "../components/NewsLetter";
-import WhyChooseUs from "../components/WhyChooseUs";
 
 export default function Home() {
  return (
@@ -19,8 +18,6 @@ export default function Home() {
      <NewArrivals />
      <FlashSale />
      <BrandSection />
-     <WhyChooseUs />
-     <Newsletter />
      <Footer />
     </>
  )

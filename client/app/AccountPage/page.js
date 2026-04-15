@@ -9,42 +9,52 @@ const AccountPage = () => {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  // ✅ Use environment variable for the API URL
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
   useEffect(() => {
     const token = localStorage.getItem('shoeStoreToken');
-    const savedUser = JSON.parse(localStorage.getItem('shoeStoreUser') || 'null');
 
-    if (!token || !savedUser) {
-      router.push('/'); // Redirect home if not logged in
+    if (!token) {
+      router.push('/'); 
       return;
     }
 
-    setUser(savedUser);
-    fetchOrders(token);
-  }, [router]);
+    // ✅ FIXED: Fetch fresh user data + orders simultaneously
+    const initPage = async () => {
+      try {
+        // 1. Fetch User Profile
+        const userRes = await fetch(`${API_URL}/api/users/profile`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const userData = await userRes.json();
 
-  const fetchOrders = async (token) => {
-    try {
-      // ✅ Dynamic URL instead of hardcoded localhost
-      const response = await fetch(`${API_URL}/api/orders/myorders`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+        if (userData.success) {
+          setUser(userData.user);
+        } else {
+          // If token is invalid/expired
+          handleLogout();
+          return;
         }
-      });
-      const data = await response.json();
-      
-      // Ensure we handle the data correctly based on your Backend response
-      setOrders(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error("Error fetching orders:", error);
-      setOrders([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+
+        // 2. Fetch Orders
+        const orderRes = await fetch(`${API_URL}/api/orders/myorders`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        const orderData = await orderRes.json();
+        setOrders(Array.isArray(orderData) ? orderData : []);
+
+      } catch (error) {
+        console.error("Initialization Error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initPage();
+  }, [router, API_URL]);
 
   const handleLogout = () => {
     localStorage.removeItem('shoeStoreToken');

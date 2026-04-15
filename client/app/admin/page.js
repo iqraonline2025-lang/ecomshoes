@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState } from 'react';
 import { 
@@ -7,18 +7,33 @@ import {
   Settings, 
   LogOut, 
   ShoppingBag,
-  SlidersHorizontal // Icon for the general admin form
+  SlidersHorizontal 
 } from 'lucide-react';
 
-// --- SEPARATE IMPORTS ---
-import AdminProductForm from "../components/adminProductForm"; // The Shoe Upload Form
-import AdminGeneralForm from "../components/adminForm";        // The General Admin Form
+import AdminProductForm from "../components/adminProductForm";
+import AdminGeneralForm from "../components/adminForm";        
 import AdminProductList from "../components/AdminProductList";
 import AdminOrdersList from "../components/AdminOrdersList";
 
 export default function AdminPage() {
-  // Tabs: 'inventory', 'add-product', 'general-settings', or 'orders'
   const [activeTab, setActiveTab] = useState('inventory'); 
+  
+  // ✅ NEW: State to store the product we want to edit
+  const [editingProduct, setEditingProduct] = useState(null);
+
+  // ✅ NEW: Function to handle when someone clicks "Edit" in the list
+  const handleEditInit = (product) => {
+    setEditingProduct(product); // Put the product data in state
+    setActiveTab('add-product'); // Switch to the form tab
+  };
+
+  // ✅ NEW: Function to reset the edit state when we switch tabs manually
+  const handleTabChange = (tabName) => {
+    if (tabName !== 'add-product') {
+      setEditingProduct(null); // Clear editing mode if we leave the form
+    }
+    setActiveTab(tabName);
+  };
 
   return (
     <div className="flex min-h-screen bg-[#fcfcfc] text-black">
@@ -33,7 +48,7 @@ export default function AdminPage() {
 
         <nav className="flex-1 space-y-2">
           <button
-            onClick={() => setActiveTab('orders')}
+            onClick={() => handleTabChange('orders')}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold text-xs uppercase tracking-widest ${
               activeTab === 'orders' ? 'bg-white text-black' : 'text-gray-400 hover:text-white hover:bg-white/10'
             }`}
@@ -43,7 +58,7 @@ export default function AdminPage() {
           </button>
 
           <button
-            onClick={() => setActiveTab('inventory')}
+            onClick={() => handleTabChange('inventory')}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold text-xs uppercase tracking-widest ${
               activeTab === 'inventory' ? 'bg-white text-black' : 'text-gray-400 hover:text-white hover:bg-white/10'
             }`}
@@ -52,20 +67,18 @@ export default function AdminPage() {
             footwear stock
           </button>
 
-          {/* Tab for AdminProductForm.jsx */}
           <button
-            onClick={() => setActiveTab('add-product')}
+            onClick={() => handleTabChange('add-product')}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold text-xs uppercase tracking-widest ${
               activeTab === 'add-product' ? 'bg-white text-black' : 'text-gray-400 hover:text-white hover:bg-white/10'
             }`}
           >
             <PlusCircle size={18} />
-            Top Deals form
+            {editingProduct ? 'Edit Product' : 'Top Deals form'}
           </button>
 
-          {/* Tab for adminForm.jsx (General Admin) */}
           <button
-            onClick={() => setActiveTab('general-settings')}
+            onClick={() => handleTabChange('general-settings')}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold text-xs uppercase tracking-widest ${
               activeTab === 'general-settings' ? 'bg-white text-black' : 'text-gray-400 hover:text-white hover:bg-white/10'
             }`}
@@ -90,7 +103,7 @@ export default function AdminPage() {
           <header className="mb-12">
             <h2 className="text-4xl font-black uppercase italic tracking-tighter">
               {activeTab === 'inventory' && 'Live Inventory'}
-              {activeTab === 'add-product' && 'New Shoe Listing'}
+              {activeTab === 'add-product' && (editingProduct ? 'Update Product' : 'New Shoe Listing')}
               {activeTab === 'general-settings' && 'System Configuration'}
               {activeTab === 'orders' && 'Order Logistics'}
             </h2>
@@ -105,18 +118,24 @@ export default function AdminPage() {
             
             {activeTab === 'inventory' && (
               <div className="animate-in fade-in slide-in-from-bottom-4">
-                <AdminProductList />
+                {/* ✅ Pass the Edit handler to the list */}
+                <AdminProductList onEdit={handleEditInit} />
               </div>
             )}
 
-            {/* Renders AdminProductForm.jsx */}
             {activeTab === 'add-product' && (
               <div className="animate-in fade-in slide-in-from-bottom-4">
-                <AdminProductForm />
+                {/* ✅ Pass editingProduct data and a success callback to the form */}
+                <AdminProductForm 
+                  existingData={editingProduct} 
+                  onSuccess={() => {
+                    setEditingProduct(null);
+                    setActiveTab('inventory');
+                  }} 
+                />
               </div>
             )}
 
-            {/* Renders adminForm.jsx */}
             {activeTab === 'general-settings' && (
               <div className="animate-in fade-in slide-in-from-bottom-4">
                 <AdminGeneralForm />

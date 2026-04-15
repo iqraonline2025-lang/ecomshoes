@@ -1,9 +1,10 @@
-'use client';
+"use client";
 
 import React, { useState, useEffect } from 'react';
 import { Upload, X, CheckCircle2, Loader2 } from 'lucide-react';
 
-const AdminProductForm = () => {
+// ✅ Added props: existingData (to fill the form) and onSuccess (to refresh the dashboard)
+const AdminProductForm = ({ existingData, onSuccess }) => {
   const [formData, setFormData] = useState({
     name: '',
     brand: '',
@@ -23,8 +24,32 @@ const AdminProductForm = () => {
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
+  // ✅ NEW: Populate form if editingData is provided
   useEffect(() => {
-    return () => previews.forEach(url => URL.revokeObjectURL(url));
+    if (existingData) {
+      setFormData({
+        name: existingData.name || '',
+        brand: existingData.brand || '',
+        newPrice: existingData.newPrice || '',
+        oldPrice: existingData.oldPrice || '',
+        category: existingData.category || 'sneakers',
+        sizes: Array.isArray(existingData.sizes) ? existingData.sizes.join(', ') : existingData.sizes,
+        isFlashSale: existingData.isFlashSale || false,
+        stockLeft: existingData.stockLeft || 10,
+        totalStock: existingData.totalStock || 50
+      });
+      // Show existing images in preview
+      if (existingData.images) {
+        setPreviews(existingData.images);
+      }
+    }
+  }, [existingData]);
+
+  useEffect(() => {
+    return () => previews.forEach(url => {
+        // Only revoke if it's a blob URL (new uploads), not Cloudinary URLs
+        if (url.startsWith('blob:')) URL.revokeObjectURL(url);
+    });
   }, [previews]);
 
   const handleInputChange = (e) => {
@@ -44,7 +69,9 @@ const AdminProductForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (files.length === 0) {
+    
+    // In edit mode, we might keep old images, so files.length can be 0
+    if (!existingData && files.length === 0) {
       setMessage('Please select at least one image.');
       return;
     }
@@ -53,8 +80,6 @@ const AdminProductForm = () => {
     setMessage('');
     
     const data = new FormData();
-    
-    // ✅ FIX 1: Append standard fields correctly
     data.append('name', formData.name);
     data.append('brand', formData.brand);
     data.append('newPrice', formData.newPrice);
@@ -63,41 +88,55 @@ const AdminProductForm = () => {
     data.append('isFlashSale', formData.isFlashSale);
     data.append('stockLeft', formData.stockLeft);
     data.append('totalStock', formData.totalStock);
-    
-    // ✅ FIX 2: Send sizes as a plain comma-separated string.
-    // Your backend's parseArrayInput helper handles the split(',') automatically.
     data.append('sizes', formData.sizes);
 
-    // ✅ FIX 3: Ensure the key is exactly 'files' to match backend .array('files', 10)
     files.forEach(file => {
       data.append('files', file); 
     });
 
     try {
-      const response = await fetch(`${API_URL}/api/products/upload`, {
-        method: 'POST',
+      // ✅ LOGIC CHANGE: 
+      // If existingData exists -> PUT to /api/products/:id
+      // Else -> POST to /api/products/upload
+      const endpoint = existingData 
+        ? `${API_URL}/api/products/${existingData._id}` 
+        : `${API_URL}/api/products/upload`;
+        
+      const method = existingData ? 'PUT' : 'POST';
+      const token = localStorage.getItem('shoeStoreToken');
+
+      const response = await fetch(endpoint, {
+        method: method,
+        headers: {
+          'Authorization': `Bearer ${token}` // Added token for admin security
+        },
         body: data,
-        // IMPORTANT: No 'Content-Type' header here!
       });
 
       const result = await response.json();
       
       if (response.ok && result.success) {
-        setMessage('Product uploaded successfully!');
-        // Reset Form
-        setFormData({ 
-          name: '', brand: '', newPrice: '', oldPrice: '', 
-          category: 'sneakers', sizes: '40, 41, 42, 43, 44', 
-          isFlashSale: false, stockLeft: 10, totalStock: 50 
-        });
-        setFiles([]);
-        setPreviews([]);
+        setMessage(existingData ? 'Product updated!' : 'Product uploaded!');
+        
+        // Trigger the success callback to go back to inventory list
+        if (onSuccess) {
+            setTimeout(() => onSuccess(), 1500); 
+        }
+
+        if (!existingData) {
+            setFormData({ 
+                name: '', brand: '', newPrice: '', oldPrice: '', 
+                category: 'sneakers', sizes: '40, 41, 42, 43, 44', 
+                isFlashSale: false, stockLeft: 10, totalStock: 50 
+            });
+            setFiles([]);
+            setPreviews([]);
+        }
       } else {
-        // If backend returns a 500, this will show the specific error message
-        setMessage(result.error || 'Upload failed. Check server logs.');
+        setMessage(result.error || result.message || 'Action failed.');
       }
     } catch (error) {
-      console.error("Upload error:", error);
+      console.error("Submit error:", error);
       setMessage('Network error. Is the server running?');
     } finally {
       setLoading(false);
@@ -107,8 +146,12 @@ const AdminProductForm = () => {
   return (
     <div className="max-w-4xl mx-auto p-8 bg-white rounded-[40px] shadow-sm border border-gray-100 my-12">
       <div className="mb-10 text-center">
-        <h2 className="text-3xl font-black uppercase italic tracking-tighter">Inventory Control</h2>
-        <p className="text-gray-400 text-sm font-bold uppercase tracking-widest mt-2">Add New Exclusive Drop</p>
+        <h2 className="text-3xl font-black uppercase italic tracking-tighter">
+            {existingData ? 'Edit Product' : 'Inventory Control'}
+        </h2>
+        <p className="text-gray-400 text-sm font-bold uppercase tracking-widest mt-2">
+            {existingData ? `Modifying ${existingData.name}` : 'Add New Exclusive Drop'}
+        </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
@@ -131,7 +174,7 @@ const AdminProductForm = () => {
               <Upload className="mx-auto text-gray-300 group-hover:text-black transition-colors" size={40} />
             )}
             <p className="text-xs font-black uppercase tracking-widest text-gray-500">
-              {files.length > 0 ? `${files.length} Files Selected` : 'Drag & Drop Shoe Images'}
+              {files.length > 0 ? `${files.length} New Files Selected` : existingData ? 'Click to replace existing images' : 'Drag & Drop Shoe Images'}
             </p>
           </div>
         </div>
@@ -186,14 +229,14 @@ const AdminProductForm = () => {
           className="w-full py-5 bg-black text-white font-black uppercase tracking-[0.2em] text-xs rounded-2xl hover:bg-zinc-800 transition-all disabled:bg-gray-400 flex items-center justify-center gap-2 shadow-xl shadow-black/10"
         >
           {loading ? (
-            <><Loader2 className="animate-spin" size={16} /> Uploading to Cloudinary...</>
-          ) : 'Publish Product'}
+            <><Loader2 className="animate-spin" size={16} /> Saving Changes...</>
+          ) : existingData ? 'Update Product' : 'Publish Product'}
         </button>
       </form>
 
       {message && (
-        <div className={`mt-6 p-4 rounded-xl flex items-center gap-3 font-bold text-sm animate-in fade-in slide-in-from-top-2 ${message.includes('successfully') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-          {message.includes('successfully') ? <CheckCircle2 size={18} /> : <X size={18} />} {message}
+        <div className={`mt-6 p-4 rounded-xl flex items-center gap-3 font-bold text-sm animate-in fade-in slide-in-from-top-2 ${message.includes('successfully') || message.includes('updated') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+          {(message.includes('successfully') || message.includes('updated')) ? <CheckCircle2 size={18} /> : <X size={18} />} {message}
         </div>
       )}
 

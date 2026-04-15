@@ -2,17 +2,16 @@
 import { useState, useEffect } from 'react';
 import { Trash2, Edit, Package, RefreshCcw, AlertCircle } from 'lucide-react';
 
-export default function AdminProductList() {
+// ✅ Added 'onEdit' to the props
+export default function AdminProductList({ onEdit }) {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // ✅ Step 1: Dynamic API URL
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
     const fetchItems = async () => {
         setLoading(true);
         try {
-            // Updated to use dynamic URL
             const res = await fetch(`${API_URL}/api/products?limit=100`);
             const data = await res.json();
             if (data.success) setProducts(data.products);
@@ -27,16 +26,12 @@ export default function AdminProductList() {
 
     const handleDelete = async (id) => {
         if (!confirm("Permanently delete this product from the database?")) return;
-        
         const token = localStorage.getItem('shoeStoreToken');
         
         try {
-            // ✅ Step 2: Secured Delete Request
             const res = await fetch(`${API_URL}/api/products/${id}`, { 
                 method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                headers: { 'Authorization': `Bearer ${token}` }
             });
 
             if (res.ok) {
@@ -78,15 +73,9 @@ export default function AdminProductList() {
                                     <div className="flex items-center gap-4">
                                         <div className="relative w-14 h-14 bg-gray-100 rounded-2xl overflow-hidden border border-gray-100">
                                             {product.images && product.images[0] ? (
-                                                <img 
-                                                    src={product.images[0]} 
-                                                    alt={product.name}
-                                                    className="w-full h-full object-cover transition-transform group-hover:scale-110" 
-                                                />
+                                                <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
                                             ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-gray-300">
-                                                    <Package size={20} />
-                                                </div>
+                                                <div className="w-full h-full flex items-center justify-center text-gray-300"><Package size={20} /></div>
                                             )}
                                         </div>
                                         <div>
@@ -96,9 +85,7 @@ export default function AdminProductList() {
                                     </div>
                                 </td>
                                 <td className="p-6">
-                                    <span className="text-[9px] font-black uppercase px-2.5 py-1 bg-zinc-100 text-zinc-500 rounded-lg">
-                                        {product.category}
-                                    </span>
+                                    <span className="text-[9px] font-black uppercase px-2.5 py-1 bg-zinc-100 text-zinc-500 rounded-lg">{product.category}</span>
                                 </td>
                                 <td className="p-6 font-black italic text-sm text-zinc-900">${product.newPrice}</td>
                                 <td className="p-6">
@@ -119,9 +106,14 @@ export default function AdminProductList() {
                                 </td>
                                 <td className="p-6 text-right">
                                     <div className="flex justify-end gap-1">
-                                        <button className="p-2.5 text-zinc-400 hover:text-black hover:bg-zinc-100 rounded-xl transition-all">
+                                        {/* ✅ CHANGED: Now calls onEdit(product) instead of router.push */}
+                                        <button 
+                                            onClick={() => onEdit(product)}
+                                            className="p-2.5 text-zinc-400 hover:text-black hover:bg-zinc-100 rounded-xl transition-all"
+                                        >
                                             <Edit size={16} />
                                         </button>
+
                                         <button 
                                             onClick={() => handleDelete(product._id)}
                                             className="p-2.5 text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"

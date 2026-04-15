@@ -21,6 +21,7 @@ import webhookRoutes from "./routes/Webhook.js";
 import orderRoutes from "./routes/orderRoutes.js";     
 import adminRoutes from "./routes/adminRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 
 const app = express();
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -57,6 +58,7 @@ if (!fs.existsSync(uploadDir)) {
 
 // 5️⃣ STRIPE WEBHOOK
 app.use("/api/webhook", express.raw({ type: "application/json" }), webhookRoutes);
+app.use("/api/users", userRoutes);
 
 // 6️⃣ Body Parsers
 app.use(express.json({ limit: "100mb" }));
