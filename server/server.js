@@ -32,9 +32,8 @@ connectDB();
 // 2️⃣ CORS Configuration
 const allowedOrigins = [
   "http://localhost:3000", 
-  "https://ecomshoes-10.onrender.com",
-  "https://ecomshoes-11.onrender.com",
-  "https://ecomshoes.vercel.app",
+  "https://ecomshoes-vn8j.vercel.app",
+  "https://ecomshoes-vn8j.vercel.app"
   process.env.FRONTEND_URL 
 ].filter(Boolean);
 
