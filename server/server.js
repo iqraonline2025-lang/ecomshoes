@@ -32,13 +32,20 @@ connectDB();
 // 2️⃣ CORS Configuration
 const allowedOrigins = [
   "http://localhost:3000", 
-  "https://ecomshoes-vn8j.vercel.app",
-  "https://ecomshoes-vn8j.vercel.app"
+  "https://ecomshoes-vn8j.vercel.app", // Fixed: Added missing comma here
   process.env.FRONTEND_URL 
 ].filter(Boolean);
 
 app.use(cors({
-  origin: true, // you can later replace with allowedOrigins
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization", "stripe-signature"]
@@ -57,6 +64,7 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 // 5️⃣ STRIPE WEBHOOK
+// Note: This must come BEFORE express.json()
 app.use("/api/webhook", express.raw({ type: "application/json" }), webhookRoutes);
 app.use("/api/users", userRoutes);
 
