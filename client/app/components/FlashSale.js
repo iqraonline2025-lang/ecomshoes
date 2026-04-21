@@ -28,7 +28,6 @@ const SHOE_DATA = [
 const FlashSale = () => {
   return (
     <section className="py-16 px-4 md:px-8 bg-white">
-      {/* Container max-width set to 1000px so 2 images look "fit" and balanced */}
       <div className="max-w-[1000px] mx-auto"> 
         <div className="mb-10 text-left border-b border-gray-100 pb-4">
           <h2 className="text-4xl font-black italic uppercase tracking-tighter">
@@ -36,7 +35,6 @@ const FlashSale = () => {
           </h2>
         </div>
         
-        {/* Force 2 columns on tablet and desktop to eliminate the gap */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
           {SHOE_DATA.map((shoe) => (
             <ShoeCard key={shoe.id} shoe={shoe} />
@@ -51,14 +49,27 @@ const ShoeCard = ({ shoe }) => {
   const [timeLeft, setTimeLeft] = useState("");
 
   useEffect(() => {
-    const timer = setInterval(() => {
+    const calculateTime = () => {
       const now = new Date().getTime();
       const distance = shoe.expiry - now;
+      
+      if (distance < 0) {
+        setTimeLeft("00:00:00");
+        return;
+      }
+
       const h = Math.floor(distance / (1000 * 60 * 60));
       const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
       const s = Math.floor((distance % (1000 * 60)) / 1000);
-      distance < 0 ? setTimeLeft("00:00:00") : setTimeLeft(`${h}h ${m}m ${s}s`);
-    }, 1000);
+      
+      // Padding with zeros for a cleaner digital clock look
+      const format = (num) => String(num).padStart(2, '0');
+      setTimeLeft(`${format(h)}h ${format(m)}m ${format(s)}s`);
+    };
+
+    calculateTime(); // Run immediately on mount
+    const timer = setInterval(calculateTime, 1000);
+    
     return () => clearInterval(timer);
   }, [shoe.expiry]);
 
@@ -66,7 +77,6 @@ const ShoeCard = ({ shoe }) => {
 
   return (
     <div className="w-full">
-      {/* Removed rotation - just a simple, clean scale on hover */}
       <div className="relative aspect-[4/5] w-full bg-[#f3f3f3] rounded-2xl overflow-hidden flex items-center justify-center group">
         
         {/* Timer Badge */}
@@ -74,7 +84,7 @@ const ShoeCard = ({ shoe }) => {
           ENDS: {timeLeft}
         </div>
 
-        {/* Static Shoe Image (No Rotation) */}
+        {/* Shoe Image */}
         <div className="relative w-[85%] h-[85%] transition-transform duration-300 group-hover:scale-105">
           <Image 
             src={shoe.image} 
@@ -91,8 +101,9 @@ const ShoeCard = ({ shoe }) => {
         <div className="flex justify-between items-baseline">
           <h3 className="text-lg font-bold uppercase">{shoe.name}</h3>
           <div className="flex gap-2 items-center">
-            <span className="text-xs text-gray-400 line-through">${shoe.oldPrice}</span>
-            <span className="text-xl font-black text-red-600">${shoe.newPrice}</span>
+            {/* Currency updated to £ */}
+            <span className="text-xs text-gray-400 line-through">£{shoe.oldPrice}</span>
+            <span className="text-xl font-black text-red-600">£{shoe.newPrice}</span>
           </div>
         </div>
 

@@ -87,7 +87,8 @@ export default function AdminProductList({ onEdit }) {
                                 <td className="p-6">
                                     <span className="text-[9px] font-black uppercase px-2.5 py-1 bg-zinc-100 text-zinc-500 rounded-lg">{product.category}</span>
                                 </td>
-                                <td className="p-6 font-black italic text-sm text-zinc-900">${product.newPrice}</td>
+                                {/* ✅ Updated $ to £ here */}
+                                <td className="p-6 font-black italic text-sm text-zinc-900">£{product.newPrice}</td>
                                 <td className="p-6">
                                     <div className="flex flex-col gap-1">
                                         <div className="flex items-center gap-2">
@@ -106,7 +107,6 @@ export default function AdminProductList({ onEdit }) {
                                 </td>
                                 <td className="p-6 text-right">
                                     <div className="flex justify-end gap-1">
-                                        {/* ✅ CHANGED: Now calls onEdit(product) instead of router.push */}
                                         <button 
                                             onClick={() => onEdit(product)}
                                             className="p-2.5 text-zinc-400 hover:text-black hover:bg-zinc-100 rounded-xl transition-all"

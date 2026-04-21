@@ -8,12 +8,10 @@ import { useRouter } from 'next/navigation';
 const CartPage = () => {
   const router = useRouter();
   const [cartItems, setCartItems] = useState([]);
-  const [promoCode, setPromoCode] = useState('');
   const [discount, setDiscount] = useState(0);
   const [mounted, setMounted] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
 
-  // ✅ Step 1: Define the Dynamic URL
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
   useEffect(() => {
@@ -26,7 +24,6 @@ const CartPage = () => {
     setCartItems(newCart);
     localStorage.setItem('cart', JSON.stringify(newCart));
     window.dispatchEvent(new Event("storage")); 
-    window.dispatchEvent(new Event("local-storage-update"));
   };
 
   const updateQuantity = (id, delta) => {
@@ -48,8 +45,9 @@ const CartPage = () => {
 
   const subtotal = cartItems.reduce((acc, item) => {
     let rawPrice = item.newPrice ?? item.price ?? 0;
+    // Updated logic: Handles '£' and string/number types correctly
     const price = typeof rawPrice === 'string' 
-      ? parseFloat(rawPrice.replace(/[$,]/g, '')) 
+      ? parseFloat(rawPrice.replace(/[£,]/g, '')) 
       : parseFloat(rawPrice);
     return acc + (isNaN(price) ? 0 : price) * (item.quantity || 1);
   }, 0);
@@ -58,67 +56,17 @@ const CartPage = () => {
   const shipping = subtotal > 150 || subtotal === 0 ? 0 : 15;
   const total = subtotal + tax + shipping - discount;
 
-  // ✅ Step 2: Update Checkout Fetch with API_URL
-  const handleCheckout = async () => {
+  const handleCheckout = () => {
     if (cartItems.length === 0) return;
-
-    const token = localStorage.getItem('shoeStoreToken');
-    const savedUser = JSON.parse(localStorage.getItem('shoeStoreUser') || 'null');
-
-    if (!token) {
-      alert("Please login to proceed to checkout.");
-      router.push('/auth');
-      return;
-    }
-
     setIsRedirecting(true);
-
-    try {
-      // Using the mounted path from your server.js
-      const response = await fetch(`${API_URL}/api/orders/checkout`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` 
-        },
-        body: JSON.stringify({
-          cartItems,
-          checkoutData: {
-            fullName: savedUser?.name || "Member",
-            email: savedUser?.email || "",
-            address: "Pending Selection",
-            city: "N/A",
-            postcode: "0000",
-            phone: "000000000",
-            deliveryType: "standard",
-            shippingCost: shipping,
-            subtotal,
-            tax,
-            total
-          }
-        })
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.url) {
-        // Redirect to Stripe or your Custom Checkout UI
-        router.push(data.url);
-      } else {
-        alert(data.error || "Checkout failed. Please try again.");
-        setIsRedirecting(false);
-      }
-    } catch (error) {
-      console.error("Checkout Error:", error);
-      alert("Failed to connect to the server.");
-      setIsRedirecting(false);
-    }
+    // This moves the user to your multi-step checkout
+    router.push('/checkout'); 
   };
 
   if (!mounted) return null;
 
   return (
-    <div className="min-h-screen bg-white pt-32 pb-20 px-6 font-sans">
+    <div className="min-h-screen bg-white pt-32 pb-20 px-6 font-sans text-black">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col mb-12">
           <Link href="/" className="flex items-center gap-2 text-zinc-400 hover:text-black transition-colors mb-4 text-[10px] font-black uppercase tracking-[0.2em] group">
@@ -137,19 +85,11 @@ const CartPage = () => {
                 <AnimatePresence mode="popLayout">
                   {cartItems.map((item) => {
                     const itemId = item._id || item.id;
-                    const displayImage = item.images?.[0] || item.image;
                     const displayPrice = item.newPrice || item.price || 0;
                     return (
-                      <motion.div
-                        key={itemId}
-                        layout
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        className="flex flex-col md:flex-row items-center py-10 border-b border-zinc-100 gap-8"
-                      >
+                      <motion.div key={itemId} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }} className="flex flex-col md:flex-row items-center py-10 border-b border-zinc-100 gap-8">
                         <div className="w-40 h-40 bg-zinc-50 overflow-hidden flex-shrink-0 rounded-3xl border border-zinc-100">
-                          <img src={displayImage} alt={item.name} className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" />
+                          <img src={item.image || item.images?.[0]} alt={item.name} className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" />
                         </div>
                         <div className="flex-grow text-center md:text-left">
                           <div className="flex justify-between items-start mb-2">
@@ -158,10 +98,8 @@ const CartPage = () => {
                               <X size={24} />
                             </button>
                           </div>
-                          <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-4">
-                            Size: <span className="text-black">{item.selectedSize || 'OS'}</span>
-                          </p>
-                          <p className="text-xl font-black italic text-blue-600">${displayPrice}</p>
+                          <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-4">Size: <span className="text-black">{item.selectedSize || 'OS'}</span></p>
+                          <p className="text-xl font-black italic text-blue-600">£{displayPrice}</p>
                         </div>
                         <div className="flex items-center gap-6">
                           <div className="flex items-center border-2 border-zinc-900 rounded-full px-5 py-2">
@@ -183,20 +121,16 @@ const CartPage = () => {
                   <h2 className="text-3xl font-black uppercase italic tracking-tighter mb-10 border-b border-white/10 pb-6">Summary</h2>
                   <div className="space-y-5 mb-10">
                     <div className="flex justify-between text-[11px] font-bold uppercase tracking-[0.2em] text-zinc-500">
-                      <span>Subtotal</span><span className="text-white">${subtotal.toFixed(2)}</span>
+                      <span>Subtotal</span><span className="text-white">£{subtotal.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between text-[11px] font-bold uppercase tracking-[0.2em] text-zinc-500">
-                      <span>Shipping</span><span className="text-white">{shipping === 0 ? "FREE" : `$${shipping.toFixed(2)}`}</span>
+                      <span>Shipping</span><span className="text-white">{shipping === 0 ? "FREE" : `£${shipping.toFixed(2)}`}</span>
                     </div>
                     <div className="flex justify-between text-4xl font-black uppercase tracking-tighter pt-4 border-t border-white/10">
-                      <span>Total</span><span>${total.toFixed(2)}</span>
+                      <span>Total</span><span>£{total.toFixed(2)}</span>
                     </div>
                   </div>
-                  <button 
-                    disabled={isRedirecting}
-                    onClick={handleCheckout} 
-                    className="w-full bg-blue-600 text-white py-6 rounded-3xl text-[11px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-3 hover:bg-blue-700 transition-all active:scale-95 disabled:opacity-50"
-                  >
+                  <button onClick={handleCheckout} className="w-full bg-blue-600 text-white py-6 rounded-3xl text-[11px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-3 hover:bg-blue-700 transition-all">
                     {isRedirecting ? <Loader2 size={20} className="animate-spin" /> : <>Secure Checkout <ArrowRight size={20} /></>}
                   </button>
                 </div>
@@ -207,7 +141,7 @@ const CartPage = () => {
           <div className="py-32 text-center border-4 border-dashed border-zinc-50 rounded-[80px]">
             <ShoppingBag size={80} className="mx-auto mb-8 text-zinc-100" />
             <p className="text-zinc-300 uppercase tracking-[0.5em] mb-12 font-black italic text-xl">Bag is empty</p>
-            <Link href="/" className="inline-block px-16 py-6 bg-black text-white text-[11px] font-black uppercase tracking-[0.3em] hover:bg-blue-600 transition-all shadow-2xl">Start Shopping</Link>
+            <Link href="/" className="inline-block px-16 py-6 bg-black text-white text-[11px] font-black uppercase tracking-[0.3em] hover:bg-blue-600 transition-all">Start Shopping</Link>
           </div>
         )}
       </div>

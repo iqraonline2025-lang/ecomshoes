@@ -2,27 +2,24 @@
 import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { ShoppingBag, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useRouter } from 'next/navigation'; // Added for redirection
+import { useRouter } from 'next/navigation';
 
 const newShoes = [
-  { id: 101, name: "Neon Flux Runner", price: "$180.00", image: "/images/shoe5.jpeg", tag: "Limited" },
-  { id: 102, name: "Shadow Walk Mid", price: "$220.00", image: "/images/shoe6.jpeg", tag: "New" },
-  { id: 103, name: "Gravity Zero Pro", price: "$250.00", image: "/images/shoe7.jpeg", tag: "Elite" },
-  { id: 104, name: "Arctic Drift V3", price: "$165.00", image: "/images/shoe8.jpeg", tag: "Fresh" },
-  { id: 105, name: "Vulcan Core High", price: "$195.00", image: "/images/shoe1.jpeg", tag: "Hot" },
-  { id: 106, name: "Zenith Air Max", price: "$210.00", image: "/images/shoe3.jpeg", tag: "New" },
+  { id: 101, name: "Neon Flux Runner", price: "£180.00", image: "/images/shoe5.jpeg", tag: "Limited" },
+  { id: 102, name: "Shadow Walk Mid", price: "£220.00", image: "/images/shoe6.jpeg", tag: "New" },
+  { id: 103, name: "Gravity Zero Pro", price: "£250.00", image: "/images/shoe7.jpeg", tag: "Elite" },
+  { id: 104, name: "Arctic Drift V3", price: "£165.00", image: "/images/shoe8.jpeg", tag: "Fresh" },
+  { id: 105, name: "Vulcan Core High", price: "£195.00", image: "/images/shoe1.jpeg", tag: "Hot" },
+  { id: 106, name: "Zenith Air Max", price: "£210.00", image: "/images/shoe3.jpeg", tag: "New" },
 ];
 
 const NewArrivals = () => {
   const scrollRef = useRef(null);
-  const router = useRouter(); // Initialize router
+  const router = useRouter();
 
   // --- Add to Cart Logic ---
   const handleQuickDrop = (product) => {
-    // 1. Get existing cart from localStorage
     const existingCart = JSON.parse(localStorage.getItem('cart') || '[]');
-    
-    // 2. Check if item exists to update quantity or add new
     const itemIndex = existingCart.findIndex(item => item.id === product.id);
     
     if (itemIndex > -1) {
@@ -31,17 +28,11 @@ const NewArrivals = () => {
       existingCart.push({ ...product, quantity: 1 });
     }
     
-    // 3. Save back to localStorage
     localStorage.setItem('cart', JSON.stringify(existingCart));
-    
-    // 4. Trigger Navbar update (Custom Event)
     window.dispatchEvent(new Event("storage"));
-
-    // 5. Redirect to Cart page
     router.push('/cart');
   };
 
-  // Function to handle manual button navigation
   const scroll = (direction) => {
     if (scrollRef.current) {
       const { scrollLeft, clientWidth } = scrollRef.current;
@@ -65,7 +56,6 @@ const NewArrivals = () => {
           </h2>
         </div>
 
-        {/* --- Navigation Buttons --- */}
         <div className="flex gap-4 z-10">
           <button 
             onClick={() => scroll('left')}
@@ -82,7 +72,6 @@ const NewArrivals = () => {
         </div>
       </div>
 
-      {/* --- Scrollable Area --- */}
       <div 
         ref={scrollRef}
         className="flex gap-8 overflow-x-auto scrollbar-hide snap-x snap-mandatory px-6 md:px-[calc((100vw-1280px)/2+24px)] pb-10"
@@ -106,7 +95,6 @@ const NewArrivals = () => {
                 </span>
               </div>
 
-              {/* Add to Bag Hover */}
               <div className="absolute inset-0 flex items-end p-8 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                 <button 
                   onClick={() => handleQuickDrop(shoe)}
@@ -123,7 +111,7 @@ const NewArrivals = () => {
                 <p className="text-zinc-500 font-medium mt-1">{shoe.price}</p>
               </div>
               <button 
-                onClick={() => router.push('/category')} // Assuming arrow goes to shop
+                onClick={() => router.push('/category')} 
                 className="mt-1 p-4 border border-zinc-800 rounded-full group-hover:bg-white group-hover:text-black transition-all"
               >
                 <ArrowRight size={20} />
@@ -133,7 +121,6 @@ const NewArrivals = () => {
         ))}
       </div>
 
-      {/* Background Graphic */}
       <div className="absolute -bottom-10 left-0 w-full overflow-hidden pointer-events-none opacity-[0.02] select-none z-0">
         <h2 className="text-[15vw] font-black uppercase whitespace-nowrap">
           LATEST DROP LATEST DROP

@@ -71,7 +71,7 @@ const QuickViewModal = ({ product, isOpen, onClose, onAddToCart, onAddToWishlist
                         onClick={() => setActiveImg(idx)}
                         className={`w-16 h-16 rounded-xl border-2 overflow-hidden transition-all ${activeImg === idx ? 'border-black scale-105' : 'border-transparent opacity-50'}`}
                     >
-                        <img src={img} className="w-full h-full object-cover" />
+                        <img src={img} className="w-full h-full object-cover" alt="thumbnail" />
                     </button>
                 ))}
               </div>
@@ -85,15 +85,16 @@ const QuickViewModal = ({ product, isOpen, onClose, onAddToCart, onAddToWishlist
               </div>
               
               <div className="flex items-baseline gap-4 mb-8">
-                <span className="text-4xl font-black italic text-zinc-900">${product.newPrice}</span>
+                {/* FIXED: Currency to £ */}
+                <span className="text-4xl font-black italic text-zinc-900">£{product.newPrice}</span>
                 {product.oldPrice > product.newPrice && (
-                  <span className="text-2xl font-bold text-zinc-300 line-through">${product.oldPrice}</span>
+                  <span className="text-2xl font-bold text-zinc-300 line-through">£{product.oldPrice}</span>
                 )}
               </div>
 
               <div className="space-y-6 mb-10">
                 <p className="text-zinc-500 text-sm leading-relaxed font-medium">
-                   Premium build featuring high-grade materials and signature {product.brand} engineering. A staple for any modern rotation.
+                    Premium build featuring high-grade materials and signature {product.brand} engineering. A staple for any modern rotation.
                 </p>
                 <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
@@ -168,7 +169,6 @@ const ProductCard = ({ product }) => {
       localStorage.setItem('wishlist', JSON.stringify(updatedWishlist));
       window.dispatchEvent(new Event('local-storage-update'));
     }
-    setIsModalOpen(false);
   };
 
   const mainImage = product.images?.[0] || '/placeholder.jpg';
@@ -200,24 +200,26 @@ const ProductCard = ({ product }) => {
             className={`absolute inset-0 w-full h-full object-cover transition-all duration-1000 ease-out scale-105 ${isHovered ? 'opacity-0 scale-110' : 'opacity-100'}`} 
             alt={product.name} 
           />
+          {/* Added z-10 to hover image */}
           <img 
             src={hoverImage} 
-            className={`absolute inset-0 w-full h-full object-cover transition-all duration-1000 ease-out scale-110 ${isHovered ? 'opacity-100 scale-100' : 'opacity-0'}`} 
+            className={`absolute inset-0 w-full h-full object-cover transition-all duration-1000 ease-out scale-110 z-10 ${isHovered ? 'opacity-100 scale-100' : 'opacity-0'}`} 
             alt="hover view" 
           />
 
-          {/* Quick View Button - High Contrast Fix */}
-          <div className={`absolute inset-x-6 bottom-6 transition-all duration-500 transform ${isHovered ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+          {/* Quick View Button */}
+          <div className={`absolute inset-x-6 bottom-6 transition-all duration-500 transform z-20 ${isHovered ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
             <button className="w-full bg-white text-black py-4 rounded-2xl flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-[0.2em] hover:bg-black hover:text-white transition-all shadow-2xl">
               <Eye size={16} /> Quick View
             </button>
           </div>
 
+          {/* FIXED HEART BUTTON: Added z-30 and shadow for visibility */}
           <button 
             onClick={(e) => handleAddToWishlist(e)} 
-            className="absolute top-5 right-5 p-3.5 bg-white/90 backdrop-blur-sm rounded-2xl shadow-sm hover:text-red-500 hover:bg-white transition-all z-20 active:scale-90"
+            className="absolute top-5 right-5 p-3.5 bg-white/95 backdrop-blur-sm rounded-2xl shadow-md text-zinc-900 hover:text-red-500 hover:bg-white transition-all z-30 active:scale-90"
           >
-            <Heart size={18} />
+            <Heart size={18} strokeWidth={2.5} />
           </button>
         </div>
 
@@ -229,9 +231,10 @@ const ProductCard = ({ product }) => {
               <h3 className="text-sm font-black uppercase leading-tight tracking-tight text-zinc-900 group-hover:text-zinc-600 transition-colors">{product.name}</h3>
             </div>
             <div className="flex flex-col items-end">
-              <span className="text-lg font-black italic tracking-tighter text-zinc-900">${product.newPrice}</span>
+              {/* FIXED: Currency to £ */}
+              <span className="text-lg font-black italic tracking-tighter text-zinc-900">£{product.newPrice}</span>
               {product.oldPrice > product.newPrice && (
-                <span className="text-[11px] font-bold text-zinc-300 line-through tracking-tighter">${product.oldPrice}</span>
+                <span className="text-[11px] font-bold text-zinc-300 line-through tracking-tighter">£{product.oldPrice}</span>
               )}
             </div>
           </div>

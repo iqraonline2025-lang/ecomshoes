@@ -18,21 +18,21 @@ export default function ProductGrid({ activeFilters = {} }) {
     try {
       const queryParams = new URLSearchParams();
       
-      // ✅ 1. ADD SEARCH
+      // 1. ADD SEARCH
       if (activeFilters.search) queryParams.append('search', activeFilters.search);
       
-      // ✅ 2. ADD SALE FLAG (Crucial for the Sale Page)
+      // 2. ADD SALE FLAG
       if (activeFilters.onSale) queryParams.append('onSale', 'true');
       
-      // ✅ 3. ADD CATEGORY
+      // 3. ADD CATEGORY
       if (activeFilters.category) queryParams.append('category', activeFilters.category);
       
-      // ✅ 4. ADD BRAND (Handle array)
+      // 4. ADD BRAND
       if (activeFilters.brand && activeFilters.brand.length > 0) {
         queryParams.append('brand', activeFilters.brand.join(','));
       }
       
-      // ✅ 5. ADD PRICE & SORT
+      // 5. ADD PRICE & SORT
       if (activeFilters.maxPrice) queryParams.append('maxPrice', activeFilters.maxPrice);
       if (activeFilters.sort) queryParams.append('sort', activeFilters.sort);
       
@@ -44,9 +44,7 @@ export default function ProductGrid({ activeFilters = {} }) {
       if (result.success) {
         const rawItems = result.products || result.data || [];
 
-        // ✅ LOGIC CHECK: 
-        // If we are on the SALE page, we WANT to show flash sales.
-        // If we are on the REGULAR shop page, we HIDE flash sales.
+        // Logic check for Flash Sale visibility
         if (activeFilters.onSale) {
             setProducts(rawItems);
         } else {
@@ -91,6 +89,9 @@ export default function ProductGrid({ activeFilters = {} }) {
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ duration: 0.3, delay: index * 0.05 }}
               >
+                {/* Ensure your ProductCard component is updated 
+                   to render £ instead of $ 
+                */}
                 <ProductCard 
                   product={p} 
                   onProtectedAction={handleProtectedAction} 

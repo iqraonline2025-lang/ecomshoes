@@ -16,25 +16,25 @@ const SHIPPING_DATA = [
     id: 'domestic',
     title: 'Domestic Shipping',
     icon: <Truck size={20} />,
-    content: "Standard shipping (3-5 business days) is complimentary on all orders over $200. Overnight express is available for a flat rate of $35. All domestic parcels are insured and require a signature upon delivery."
+    content: "All domestic orders include complimentary white-glove delivery. Every parcel is fully insured and dispatched via our secure carrier network. For security purposes, a physical signature is strictly required upon arrival."
   },
   {
     id: 'international',
     title: 'International Delivery',
     icon: <Globe size={20} />,
-    content: "We ship to over 50 countries via DHL Express. Delivery typically takes 5-10 business days. Please note that custom duties and taxes are calculated at checkout for a DDP (Delivered Duty Paid) experience."
+    content: "We provide global distribution to over 50 countries. To ensure a seamless experience, all international orders are shipped DDP (Delivered Duty Paid), meaning all customs, duties, and taxes are settled at the point of purchase."
   },
   {
     id: 'returns',
     title: 'Return Policy',
     icon: <RefreshCcw size={20} />,
-    content: "Items must be returned within 14 days of delivery in original, unworn condition with all tags and security seals intact. Return shipping is free for domestic exchanges."
+    content: "We accept returns on items in original, unworn condition with all security seals intact. Our team provides a pre-paid concierge return service for all domestic exchanges within the eligible window."
   },
   {
     id: 'authentication',
     title: 'Safe Passage',
     icon: <ShieldCheck size={20} />,
-    content: "Every order is packed under 24/7 surveillance and sealed with a tamper-proof holographic strip. We guarantee the safe arrival of your goods or a full refund."
+    content: "Every item undergoes a final inspection before being vacuum-sealed with a tamper-proof holographic strip. Our 'Safe Passage' guarantee ensures your goods arrive in perfect condition or a full recovery is issued."
   }
 ];
 
@@ -52,7 +52,7 @@ export default function ShippingPage() {
         <div className="text-[10px] font-black uppercase tracking-[0.4em] italic">
           Logistics // Support
         </div>
-        <div className="w-10" /> {/* Spacer */}
+        <div className="w-10" />
       </nav>
 
       <main className="max-w-[1400px] mx-auto px-6 py-12 md:py-24">
@@ -63,14 +63,13 @@ export default function ShippingPage() {
             Shipping<br />& Care.
           </h1>
           <p className="max-w-xl text-sm font-bold text-zinc-400 uppercase tracking-widest leading-relaxed">
-            Our global distribution network ensures your order reaches you with speed and uncompromising security.
+            Our global distribution network ensures your order reaches you with uncompromising speed and total security.
           </p>
         </div>
 
         {/* 3. INTERACTIVE LAYOUT */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 border-t border-zinc-100 pt-12">
           
-          {/* Sidebar Links */}
           <aside className="lg:col-span-4 space-y-2">
             {SHIPPING_DATA.map((item) => (
               <button
@@ -91,7 +90,6 @@ export default function ShippingPage() {
             ))}
           </aside>
 
-          {/* Dynamic Content Display */}
           <div className="lg:col-span-8 bg-zinc-50 p-10 md:p-20 flex flex-col justify-center">
             <div className="animate-in fade-in slide-in-from-right-4 duration-500">
               <h2 className="text-4xl font-black uppercase italic tracking-tighter mb-6">
@@ -101,7 +99,6 @@ export default function ShippingPage() {
                 {SHIPPING_DATA.find(s => s.id === activeSection).content}
               </p>
               
-              {/* Functional Buttons based on section */}
               <div className="flex gap-4">
                 <button className="bg-black text-white px-8 py-4 text-[10px] font-black uppercase tracking-widest hover:bg-zinc-800 transition">
                   Track Order
@@ -126,9 +123,8 @@ export default function ShippingPage() {
         </div>
       </main>
 
-      {/* Footer Decoration */}
       <footer className="py-12 text-center text-[10px] font-black text-zinc-200 uppercase tracking-[1em]">
-        Ecom_Global_Logistics_2026
+        ROADKICKS_Global_Logistics_2026
       </footer>
     </div>
   );

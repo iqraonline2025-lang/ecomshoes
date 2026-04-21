@@ -10,19 +10,42 @@ const AuthPage = () => {
   const [formData, setFormData] = useState({ name: '', email: '', password: '' });
   const router = useRouter();
 
-  // ✅ Step 1: Define the Dynamic URL
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // ✅ Step 2: Update the Standard Login/Register Fetch
+  const handleAuthSuccess = (userData, token) => {
+    // 1. Clear existing data
+    localStorage.removeItem('shoeStoreToken');
+    localStorage.removeItem('shoeStoreUser');
+
+    // 2. Save fresh data
+    localStorage.setItem('shoeStoreToken', token);
+    localStorage.setItem('shoeStoreUser', JSON.stringify(userData));
+    
+    // 3. Notify app
+    window.dispatchEvent(new Event('local-storage-update'));
+
+    // 4. Redirect Logic
+    if (userData && userData.role === 'admin') {
+      router.push('/admin');
+    } else {
+      router.push('/category');
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+
     const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
-    const payload = isLogin ? { email: formData.email, password: formData.password } : formData;
+    
+    // FIXED: Ensure the payload includes the role for registration
+    const payload = isLogin 
+      ? { email: formData.email, password: formData.password } 
+      : { ...formData, role: 'admin' }; // This sends 'admin' to your fixed backend
 
     try {
       const res = await fetch(`${API_URL}${endpoint}`, {
@@ -30,23 +53,22 @@ const AuthPage = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
+      
       const data = await res.json();
+      
       if (res.ok) {
-        localStorage.setItem('shoeStoreToken', data.token);
-        localStorage.setItem('shoeStoreUser', JSON.stringify(data.user));
-        window.dispatchEvent(new Event('local-storage-update'));
-        router.push('/');
+        handleAuthSuccess(data.user, data.token);
       } else {
         alert(data.message || "Authentication failed");
       }
     } catch (err) {
       console.error("Auth Error:", err);
+      alert("Server connection failed.");
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ Step 3: Update Google Success handler to use Dynamic URL
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
       const res = await fetch(`${API_URL}/api/auth/google`, {
@@ -55,11 +77,9 @@ const AuthPage = () => {
         body: JSON.stringify({ token: credentialResponse.credential }),
       });
       const data = await res.json();
-      if (data.success) {
-        localStorage.setItem('shoeStoreToken', data.token);
-        localStorage.setItem('shoeStoreUser', JSON.stringify(data.user));
-        window.dispatchEvent(new Event('local-storage-update'));
-        router.push('/');
+      
+      if (data.success || res.ok) {
+        handleAuthSuccess(data.user, data.token);
       }
     } catch (err) {
       console.error("Google Auth Error:", err);
@@ -68,29 +88,29 @@ const AuthPage = () => {
 
   return (
     <div className="min-h-screen bg-white flex flex-col lg:flex-row font-sans">
-      {/* LEFT SIDE: Brand Image */}
+      {/* Brand Side */}
       <div className="hidden lg:flex lg:w-1/2 bg-zinc-900 relative overflow-hidden items-center justify-center p-12">
         <img 
           src="https://images.unsplash.com/photo-1552346154-21d32810aba3?q=80&w=2070&auto=format&fit=crop" 
           alt="Sneaker Culture"
-          className="absolute inset-0 w-full h-full object-cover opacity-60 grayscale hover:grayscale-0 transition-all duration-1000"
+          className="absolute inset-0 w-full h-full object-cover opacity-60 grayscale"
         />
         <div className="relative z-20 text-white text-center">
           <h2 className="text-8xl font-black italic tracking-tighter uppercase leading-[0.8]">
             STREET <br /> READY.
           </h2>
-          <p className="mt-6 text-xs font-bold tracking-[0.4em] uppercase opacity-70">RoadKicks Elite Member Access</p>
+          <p className="mt-6 text-xs font-bold tracking-[0.4em] uppercase opacity-70">RoadKicks Elite Access</p>
         </div>
       </div>
 
-      {/* RIGHT SIDE: Auth Form */}
+      {/* Form Side */}
       <div className="flex-1 flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-sm">
           <div className="mb-10">
             <h1 className="text-4xl font-black uppercase tracking-tighter text-black">
               {isLogin ? 'Welcome Back' : 'Create Account'}
             </h1>
-            <div className="h-1 w-10 bg-blue-600 mt-2" />
+            <div className="h-1 w-10 bg-black mt-2" />
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -102,7 +122,7 @@ const AuthPage = () => {
                   type="text"
                   placeholder="Full Name"
                   required
-                  className="w-full py-4 pl-10 pr-4 bg-transparent text-sm font-medium focus:outline-none placeholder:text-zinc-300"
+                  className="w-full py-4 pl-10 pr-4 bg-transparent text-sm font-medium focus:outline-none text-black"
                   onChange={handleInputChange}
                 />
               </div>
@@ -115,7 +135,7 @@ const AuthPage = () => {
                 type="email"
                 placeholder="Email Address"
                 required
-                className="w-full py-4 pl-10 pr-4 bg-transparent text-sm font-medium focus:outline-none placeholder:text-zinc-300"
+                className="w-full py-4 pl-10 pr-4 bg-transparent text-sm font-medium focus:outline-none text-black"
                 onChange={handleInputChange}
               />
             </div>
@@ -127,7 +147,7 @@ const AuthPage = () => {
                 type="password"
                 placeholder="Password"
                 required
-                className="w-full py-4 pl-10 pr-4 bg-transparent text-sm font-medium focus:outline-none placeholder:text-zinc-300"
+                className="w-full py-4 pl-10 pr-4 bg-transparent text-sm font-medium focus:outline-none text-black"
                 onChange={handleInputChange}
               />
             </div>
@@ -150,14 +170,13 @@ const AuthPage = () => {
             </button>
           </form>
 
-          {/* Social Divider */}
           <div className="relative my-10 flex items-center">
             <div className="flex-grow border-t border-zinc-100"></div>
             <span className="flex-shrink mx-4 text-[10px] font-bold text-zinc-300 uppercase tracking-widest">OR</span>
             <div className="flex-grow border-t border-zinc-100"></div>
           </div>
 
-          <div className="flex justify-center mb-10 overflow-hidden">
+          <div className="flex justify-center mb-10">
              <GoogleLogin
                onSuccess={handleGoogleSuccess}
                onError={() => console.log('Login Failed')}

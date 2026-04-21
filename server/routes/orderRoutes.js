@@ -9,24 +9,22 @@ import { protect } from '../middleware/auth.js';
 const router = express.Router();
 
 /**
- * @route   POST /external-api/checkout
- * @desc    Create a new order and process checkout
+ * @route   POST /api/orders/checkout (or /external-api/checkout)
+ * @desc    Process information, create Stripe session, and send email
  * @access  Private
- * Note: Because this is mounted at /external-api in server.js, 
- * the path here should just be '/checkout'
  */
 router.post('/checkout', protect, createOrder);
 
 /**
  * @route   GET /api/orders/myorders
- * @desc    Get all orders for the currently logged-in user
+ * @desc    Get order history for logged-in user
  * @access  Private
  */
 router.get('/myorders', protect, getMyOrders);
 
 /**
  * @route   GET /api/orders/track/:orderId
- * @desc    Track a specific order (Public/Guest access)
+ * @desc    Track order status (Public)
  * @access  Public
  */
 router.get('/track/:orderId', getOrderTracking);

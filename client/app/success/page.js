@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { CheckCircle, Package, ArrowRight, ShoppingBag } from 'lucide-react';
+import { CheckCircle, Package, ArrowRight, ShoppingBag, Truck } from 'lucide-react';
 
 const SuccessPage = () => {
   const [orderId, setOrderId] = useState(null);
@@ -11,6 +11,7 @@ const SuccessPage = () => {
   useEffect(() => {
     // 1. Clear the local cart immediately
     localStorage.removeItem('cart');
+    window.dispatchEvent(new Event("storage")); // Ensure navbar cart count updates
     
     // 2. Grab the session ID from the URL
     const params = new URLSearchParams(window.location.search);
@@ -49,26 +50,41 @@ const SuccessPage = () => {
           </p>
         </div>
 
-        {/* ORDER DETAILS CARD */}
+        {/* ORDER DETAILS & DELIVERY ESTIMATE CARD */}
         <motion.div 
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="bg-zinc-50 rounded-[40px] p-8 border border-zinc-100 grid grid-cols-1 md:grid-cols-2 gap-6 text-left"
+          className="bg-zinc-50 rounded-[40px] p-8 border border-zinc-100 space-y-8"
         >
-          <div className="space-y-1">
-            <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-              <Package size={12} /> Order Reference
-            </p>
-            <p className="font-black text-sm uppercase">
-              {orderId ? `#${orderId}` : 'GENERATING...'}
-            </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left border-b border-zinc-200 pb-8">
+            <div className="space-y-1">
+              <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                <Package size={12} /> Order Reference
+              </p>
+              <p className="font-black text-sm uppercase">
+                {orderId ? `#${orderId}` : 'GENERATING...'}
+              </p>
+            </div>
+            <div className="space-y-1 text-right md:text-left">
+              <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2 md:justify-start justify-end">
+                <ShoppingBag size={12} /> Status
+              </p>
+              <p className="font-black text-sm uppercase text-green-600 italic">Confirmed</p>
+            </div>
           </div>
-          <div className="space-y-1 text-right md:text-left">
-            <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2 md:justify-start justify-end">
-              <ShoppingBag size={12} /> Status
+
+          {/* ADDED: Delivery Timeline Message */}
+          <div className="text-left space-y-2">
+            <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+              <Truck size={12} /> Delivery Estimate
             </p>
-            <p className="font-black text-sm uppercase text-green-600 italic">Confirmed</p>
+            <p className="text-sm font-bold uppercase italic">
+              Your order will be received in <span className="text-black underline decoration-2 underline-offset-4">3 weeks</span>
+            </p>
+            <p className="text-[9px] text-zinc-400 font-medium uppercase tracking-tight">
+              Each piece is crafted to order. We will notify you via email when it ships.
+            </p>
           </div>
         </motion.div>
 
@@ -81,13 +97,12 @@ const SuccessPage = () => {
             Continue Shopping <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
           </Link>
 
-          {/* FIXED: Links directly to the unique tracking URL */}
           <Link 
-            href={fullSessionId ? `/orders/${fullSessionId}` : '/orders'} 
-            className="flex-1 border-2 border-zinc-100 py-6 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-3 hover:bg-zinc-50 transition-all"
-          >
-            Track Order
-          </Link>
+  href={fullSessionId ? `/orders/${fullSessionId}` : '#'} 
+  className={`flex-1 border-2 border-zinc-100 py-6 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-3 transition-all ${!fullSessionId ? 'opacity-50 cursor-not-allowed' : 'hover:bg-zinc-50'}`}
+>
+  Track Order
+</Link>
         </div>
 
         <p className="text-[9px] text-zinc-400 font-bold uppercase leading-relaxed tracking-widest">

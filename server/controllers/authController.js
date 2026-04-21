@@ -14,7 +14,8 @@ const generateToken = (id) => {
 
 export const registerUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    // UPDATED: Destructure 'role' from req.body
+    const { name, email, password, role } = req.body;
     const normalizedEmail = email.toLowerCase();
 
     const userExists = await User.findOne({ email: normalizedEmail });
@@ -22,11 +23,13 @@ export const registerUser = async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
+    // UPDATED: Include 'role' in the creation object
     const user = await User.create({
       name,
       email: normalizedEmail,
       password,
-      picture: DEFAULT_PIC
+      picture: DEFAULT_PIC,
+      role: role || 'user' // Defaults to 'user' if no role is provided
     });
 
     res.status(201).json({
@@ -35,7 +38,7 @@ export const registerUser = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role,
+        role: user.role, // Now returns 'admin' if that's what was saved
         picture: user.picture
       }
     });
@@ -50,20 +53,17 @@ export const loginUser = async (req, res) => {
     const { email, password } = req.body;
     const normalizedEmail = email.toLowerCase();
 
-    // 1. Find user and explicitly select password (because select: false in model)
     const user = await User.findOne({ email: normalizedEmail }).select("+password");
 
     if (!user) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    // 2. Check password using the method defined in User model
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    // 3. Send response
     res.json({
       token: generateToken(user._id),
       user: {
@@ -94,6 +94,7 @@ export const googleAuth = async (req, res) => {
     let user = await User.findOne({ email: normalizedEmail });
 
     if (!user) {
+      // NOTE: Google signups will default to 'user' role
       user = await User.create({ name, email: normalizedEmail, picture, googleId });
     } else if (!user.googleId) {
       user.googleId = googleId;

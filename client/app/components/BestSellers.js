@@ -4,16 +4,17 @@ import { motion } from 'framer-motion';
 import { ShoppingBag, Heart, Star, Check, Plus } from 'lucide-react';
 
 const products = [
-  { id: 1, name: "Apex Runner v2", price: "$145.00", rating: 4.9, image: "/images/shoe1.jpeg", tag: "Best Seller" },
-  { id: 2, name: "Cloud Walker Sneakers", price: "$120.00", rating: 4.8, image: "/images/casual.jpeg", tag: "Trending" },
-  { id: 3, name: "Executive Oxford", price: "$210.00", rating: 5.0, image: "/images/shoe3.jpeg", tag: "New Arrival" },
-  { id: 4, name: "Tempo Training Pro", price: "$130.00", rating: 4.7, image: "/images/shoe4.jpeg", tag: "Best Seller" }
+  { id: 1, name: "Apex Runner v2", price: "£145.00", rating: 4.9, image: "/images/shoe1.jpeg", tag: "Best Seller" },
+  { id: 2, name: "Cloud Walker Sneakers", price: "£120.00", rating: 4.8, image: "/images/casual.jpeg", tag: "Trending" },
+  { id: 3, name: "Executive Oxford", price: "£210.00", rating: 5.0, image: "/images/shoe3.jpeg", tag: "New Arrival" },
+  { id: 4, name: "Tempo Training Pro", price: "£130.00", rating: 4.7, image: "/images/shoe4.jpeg", tag: "Best Seller" }
 ];
 
 const BestSellers = () => {
   const [wishlist, setWishlist] = useState([]);
   const [addingId, setAddingId] = useState(null);
 
+  // Sync wishlist from localStorage on mount
   useEffect(() => {
     const savedWishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
     setWishlist(savedWishlist.map(item => item.id));
@@ -48,6 +49,8 @@ const BestSellers = () => {
     
     localStorage.setItem('cart', JSON.stringify(existingCart));
     setAddingId(product.id);
+    
+    // Provide visual feedback for 2 seconds
     setTimeout(() => setAddingId(null), 2000);
     window.dispatchEvent(new Event("storage"));
   };
@@ -57,7 +60,11 @@ const BestSellers = () => {
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-4">
           <div className="max-w-xl">
-            <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} className="text-xs font-bold tracking-[0.5em] text-blue-600 uppercase mb-4">
+            <motion.p 
+              initial={{ opacity: 0 }} 
+              whileInView={{ opacity: 1 }} 
+              className="text-xs font-bold tracking-[0.5em] text-blue-600 uppercase mb-4"
+            >
               Curated Selection
             </motion.p>
             <h2 className="text-5xl md:text-7xl font-black text-black uppercase tracking-tighter leading-none">
@@ -72,25 +79,38 @@ const BestSellers = () => {
             const isAdding = addingId === product.id;
 
             return (
-              <motion.div key={product.id} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.1 }} viewport={{ once: true }} className="group relative">
+              <motion.div 
+                key={product.id} 
+                initial={{ opacity: 0, y: 30 }} 
+                whileInView={{ opacity: 1, y: 0 }} 
+                transition={{ delay: index * 0.1 }} 
+                viewport={{ once: true }} 
+                className="group relative"
+              >
                 <div className="relative aspect-[3/4] overflow-hidden bg-zinc-50 rounded-2xl mb-6">
                   {/* Image */}
-                  <motion.img src={product.image} alt={product.name} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" />
+                  <motion.img 
+                    src={product.image} 
+                    alt={product.name} 
+                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" 
+                  />
                   
                   {/* Action Buttons */}
                   <div className="absolute top-4 right-4 flex flex-col gap-2 translate-x-16 group-hover:translate-x-0 transition-transform duration-500 ease-out">
-                    {/* Wishlist Button - Added border and text-zinc color for visibility */}
+                    {/* Wishlist Button */}
                     <button 
                       onClick={(e) => handleWishlist(e, product)} 
                       className="p-3 bg-white border border-zinc-100 text-zinc-900 rounded-full shadow-xl hover:bg-black hover:text-white transition-all duration-300"
+                      aria-label="Add to wishlist"
                     >
                       <Heart size={18} className={isLiked ? "fill-red-500 text-red-500" : "currentColor"} />
                     </button>
 
-                    {/* Add to Cart Button - Added border and text-zinc color for visibility */}
+                    {/* Add to Cart Button */}
                     <button 
                       onClick={() => handleAddToCart(product)} 
                       className="p-3 bg-white border border-zinc-100 text-zinc-900 rounded-full shadow-xl hover:bg-blue-600 hover:text-white transition-all duration-300"
+                      aria-label="Add to cart"
                     >
                       {isAdding ? <Check size={18} className="text-green-500" /> : <Plus size={18} />}
                     </button>
@@ -100,14 +120,18 @@ const BestSellers = () => {
                 {/* Product Info */}
                 <div className="px-2">
                   <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-lg font-black uppercase tracking-tighter leading-tight">{product.name}</h3>
+                    <h3 className="text-lg font-black uppercase tracking-tighter leading-tight">
+                      {product.name}
+                    </h3>
                     <div className="flex items-center bg-zinc-100 px-2 py-1 rounded">
                       <Star size={10} className="fill-black mr-1" />
                       <span className="text-[10px] font-bold">{product.rating}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-xl font-light text-zinc-400 italic">{product.price}</span>
+                    <span className="text-xl font-light text-zinc-400 italic">
+                      {product.price}
+                    </span>
                     <div className="h-[1px] flex-grow bg-zinc-100 group-hover:bg-black transition-colors duration-500" />
                   </div>
                 </div>

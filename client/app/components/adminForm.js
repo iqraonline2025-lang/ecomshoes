@@ -56,11 +56,9 @@ export default function AdminAddProduct() {
 
     const data = new FormData();
     
-    // Clean Arrays
     const sizeArray = formData.sizes.split(',').map(s => s.trim()).filter(Boolean);
     const colorArray = formData.colors.split(',').map(c => c.trim()).filter(Boolean);
 
-    // Append Standard Fields
     data.append('name', formData.name);
     data.append('brand', formData.brand);
     data.append('category', formData.category);
@@ -70,11 +68,9 @@ export default function AdminAddProduct() {
     data.append('stockLeft', Number(formData.stockLeft));
     data.append('totalStock', Number(formData.totalStock));
     
-    // Send as strings (Backend handles the split/parse)
     data.append('sizes', sizeArray.join(','));
     data.append('colors', colorArray.join(','));
 
-    // ✅ FIX: Match backend .array('files')
     images.forEach((file) => {
       data.append('files', file); 
     });
@@ -83,7 +79,6 @@ export default function AdminAddProduct() {
       const res = await fetch(`${API_URL}/api/products/upload`, {
         method: 'POST',
         body: data, 
-        // Note: Fetch sets the correct multipart/form-data boundary automatically
       });
 
       const result = await res.json();
@@ -149,7 +144,10 @@ export default function AdminAddProduct() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Input label="Shoe Name" name="name" value={formData.name} onChange={handleChange} placeholder="Dunk Low Panda" />
               <Input label="Brand" name="brand" value={formData.brand} onChange={handleChange} placeholder="Nike" />
-              <Input label="Price ($)" name="price" type="number" value={formData.price} onChange={handleChange} placeholder="120" />
+              
+              {/* ✅ Label and Placeholder updated to Pound (£) */}
+              <Input label="Price (£)" name="price" type="number" value={formData.price} onChange={handleChange} placeholder="85" />
+              
               <div className="flex flex-col gap-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Category</label>
                 <select name="category" value={formData.category} onChange={handleChange} required className="bg-gray-50 rounded-2xl p-4 text-sm font-bold outline-none border-2 border-transparent focus:border-black transition-all">

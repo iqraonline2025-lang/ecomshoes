@@ -1,13 +1,17 @@
 "use client";
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronRight, Truck, Zap, User, MapPin, Phone } from 'lucide-react';
+import { ChevronRight, ShieldCheck, User, MapPin, Phone, Mail, Home } from 'lucide-react';
 
 const ShippingStep = ({ data, setData, onNext }) => {
-  // Ensure a default is selected if none exists
   useEffect(() => {
+    // Automatically set default shipping state without requiring user selection
     if (!data.deliveryType) {
-      setData(prev => ({ ...prev, deliveryType: 'standard', shippingCost: 15 }));
+      setData(prev => ({ 
+        ...prev, 
+        deliveryType: 'secure_logistics', 
+        shippingCost: 0 // Setting to 0 to match the "complimentary" high-end feel
+      }));
     }
   }, [data.deliveryType, setData]);
 
@@ -15,20 +19,17 @@ const ShippingStep = ({ data, setData, onNext }) => {
     setData({ ...data, [e.target.name]: e.target.value });
   };
 
-  const selectDelivery = (type, cost) => {
-    setData({ ...data, deliveryType: type, shippingCost: cost });
-  };
-
-  // Validation logic
+  // ✅ Comprehensive Validation
   const isFormValid = 
     data.fullName?.trim() && 
+    data.email?.trim() && 
     data.address?.trim() && 
     data.city?.trim() && 
     data.postcode?.trim() && 
     data.phone?.trim();
 
   const handleContinue = (e) => {
-    e.preventDefault(); // Safety first
+    e.preventDefault();
     if (isFormValid) {
       onNext();
     }
@@ -46,7 +47,7 @@ const ShippingStep = ({ data, setData, onNext }) => {
           <h2 className="text-3xl font-black uppercase tracking-tighter italic">
             Shipping <span className="text-zinc-400 font-light">Information</span>
           </h2>
-          <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em]">Where should we send your heat?</p>
+          <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em]">Enter your details for secure delivery</p>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -57,35 +58,50 @@ const ShippingStep = ({ data, setData, onNext }) => {
               placeholder="FULL NAME" 
               value={data.fullName || ''} 
               onChange={handleChange} 
-              className="w-full bg-white border border-zinc-200 rounded-2xl pl-16 pr-6 py-5 outline-none focus:border-black transition-all font-bold text-xs uppercase tracking-widest" 
+              className="w-full bg-white border border-zinc-200 rounded-2xl pl-16 pr-6 py-5 outline-none focus:border-black transition-all font-bold text-xs uppercase tracking-widest text-black" 
+            />
+          </div>
+
+          <div className="md:col-span-2 relative">
+            <Mail className="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-300" size={18} />
+            <input 
+              name="email" 
+              type="email"
+              placeholder="EMAIL ADDRESS" 
+              value={data.email || ''} 
+              onChange={handleChange} 
+              className="w-full bg-white border border-zinc-200 rounded-2xl pl-16 pr-6 py-5 outline-none focus:border-black transition-all font-bold text-xs uppercase tracking-widest text-black" 
             />
           </div>
           
           <div className="md:col-span-2 relative">
-            <MapPin className="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-300" size={18} />
+            <Home className="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-300" size={18} />
             <input 
               name="address" 
-              placeholder="STREET ADDRESS" 
+              placeholder="STREET ADDRESS / HOUSE NUMBER" 
               value={data.address || ''} 
               onChange={handleChange} 
-              className="w-full bg-white border border-zinc-200 rounded-2xl pl-16 pr-6 py-5 outline-none focus:border-black transition-all font-bold text-xs uppercase tracking-widest" 
+              className="w-full bg-white border border-zinc-200 rounded-2xl pl-16 pr-6 py-5 outline-none focus:border-black transition-all font-bold text-xs uppercase tracking-widest text-black" 
             />
           </div>
 
-          <input 
-            name="city" 
-            placeholder="CITY" 
-            value={data.city || ''} 
-            onChange={handleChange} 
-            className="w-full bg-white border border-zinc-200 rounded-2xl px-6 py-5 outline-none focus:border-black transition-all font-bold text-xs uppercase tracking-widest" 
-          />
+          <div className="relative">
+            <MapPin className="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-300" size={18} />
+            <input 
+              name="city" 
+              placeholder="CITY" 
+              value={data.city || ''} 
+              onChange={handleChange} 
+              className="w-full bg-white border border-zinc-200 rounded-2xl pl-16 pr-6 py-5 outline-none focus:border-black transition-all font-bold text-xs uppercase tracking-widest text-black" 
+            />
+          </div>
 
           <input 
             name="postcode" 
             placeholder="POSTCODE" 
             value={data.postcode || ''} 
             onChange={handleChange} 
-            className="w-full bg-white border border-zinc-200 rounded-2xl px-6 py-5 outline-none focus:border-black transition-all font-bold text-xs uppercase tracking-widest" 
+            className="w-full bg-white border border-zinc-200 rounded-2xl px-6 py-5 outline-none focus:border-black transition-all font-bold text-xs uppercase tracking-widest text-black" 
           />
 
           <div className="md:col-span-2 relative">
@@ -96,52 +112,25 @@ const ShippingStep = ({ data, setData, onNext }) => {
               placeholder="PHONE NUMBER" 
               value={data.phone || ''} 
               onChange={handleChange} 
-              className="w-full bg-white border border-zinc-200 rounded-2xl pl-16 pr-6 py-5 outline-none focus:border-black transition-all font-bold text-xs uppercase tracking-widest" 
+              className="w-full bg-white border border-zinc-200 rounded-2xl pl-16 pr-6 py-5 outline-none focus:border-black transition-all font-bold text-xs uppercase tracking-widest text-black" 
             />
           </div>
         </div>
       </div>
 
-      <div className="space-y-6">
-        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400">Delivery Options</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <button 
-            type="button"
-            onClick={() => selectDelivery('standard', 15)}
-            className={`flex items-center justify-between p-6 rounded-3xl border-2 transition-all ${
-              data.deliveryType === 'standard' ? 'border-black bg-white shadow-xl shadow-black/5' : 'border-zinc-100 opacity-40 hover:opacity-100'
-            }`}
-          >
-            <div className="flex items-center gap-4">
-              <div className={`p-3 rounded-xl ${data.deliveryType === 'standard' ? 'bg-black text-white' : 'bg-zinc-100 text-zinc-400'}`}>
-                <Truck size={20}/>
-              </div>
-              <div className="text-left">
-                <p className="text-[10px] font-black uppercase tracking-widest">Standard</p>
-                <p className="text-[9px] font-bold text-zinc-400 uppercase">3-5 Business Days</p>
-              </div>
-            </div>
-            <span className="font-black text-xs">$15.00</span>
-          </button>
-
-          <button 
-            type="button"
-            onClick={() => selectDelivery('express', 35)}
-            className={`flex items-center justify-between p-6 rounded-3xl border-2 transition-all ${
-              data.deliveryType === 'express' ? 'border-black bg-white shadow-xl shadow-black/5' : 'border-zinc-100 opacity-40 hover:opacity-100'
-            }`}
-          >
-            <div className="flex items-center gap-4">
-              <div className={`p-3 rounded-xl ${data.deliveryType === 'express' ? 'bg-black text-white' : 'bg-zinc-100 text-zinc-400'}`}>
-                <Zap size={20}/>
-              </div>
-              <div className="text-left">
-                <p className="text-[10px] font-black uppercase tracking-widest">Express</p>
-                <p className="text-[9px] font-bold text-zinc-400 uppercase">1-2 Business Days</p>
-              </div>
-            </div>
-            <span className="font-black text-xs">$35.00</span>
-          </button>
+      {/* Simplified Logistics Info instead of selection buttons */}
+      <div className="bg-zinc-50 p-6 rounded-3xl border border-zinc-100 flex items-center gap-5">
+        <div className="bg-black text-white p-4 rounded-2xl">
+          <ShieldCheck size={24} />
+        </div>
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-widest text-black">Global Secure Logistics</p>
+          <p className="text-[9px] font-bold text-zinc-400 uppercase leading-tight mt-1">
+            Fully insured white-glove delivery • Signature Required
+          </p>
+        </div>
+        <div className="ml-auto">
+          <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Included</span>
         </div>
       </div>
 
@@ -154,7 +143,7 @@ const ShippingStep = ({ data, setData, onNext }) => {
         {isFormValid ? (
           <>Continue to Payment <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" /></>
         ) : (
-          "Complete All Fields"
+          "Complete Shipping Info"
         )}
       </button>
     </motion.div>

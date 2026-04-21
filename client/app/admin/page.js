@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
   PlusCircle, 
   Package, 
-  Settings, 
   LogOut, 
   ShoppingBag,
   SlidersHorizontal 
@@ -16,23 +16,37 @@ import AdminProductList from "../components/AdminProductList";
 import AdminOrdersList from "../components/AdminOrdersList";
 
 export default function AdminPage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('inventory'); 
-  
-  // ✅ NEW: State to store the product we want to edit
   const [editingProduct, setEditingProduct] = useState(null);
 
-  // ✅ NEW: Function to handle when someone clicks "Edit" in the list
+  // Security Check: Redirect if not logged in as admin
+  useEffect(() => {
+    const userData = localStorage.getItem('shoeStoreUser');
+    const user = userData ? JSON.parse(userData) : null;
+    
+    if (!user || user.role !== 'admin') {
+      router.push('/auth');
+    }
+  }, [router]);
+
   const handleEditInit = (product) => {
-    setEditingProduct(product); // Put the product data in state
-    setActiveTab('add-product'); // Switch to the form tab
+    setEditingProduct(product); 
+    setActiveTab('add-product'); 
   };
 
-  // ✅ NEW: Function to reset the edit state when we switch tabs manually
   const handleTabChange = (tabName) => {
     if (tabName !== 'add-product') {
-      setEditingProduct(null); // Clear editing mode if we leave the form
+      setEditingProduct(null); 
     }
     setActiveTab(tabName);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('shoeStoreToken');
+    localStorage.removeItem('shoeStoreUser');
+    window.dispatchEvent(new Event('local-storage-update'));
+    router.push('/auth');
   };
 
   return (
@@ -42,8 +56,9 @@ export default function AdminPage() {
       <aside className="w-64 bg-black p-6 flex flex-col fixed h-full z-50">
         <div className="mb-10 px-2">
           <h1 className="text-white text-2xl font-black uppercase italic tracking-tighter">
-            Store<span className="text-gray-500 underline decoration-1">Admin</span>
+            Road<span className="text-blue-600 underline decoration-2 underline-offset-4">Kicks</span>
           </h1>
+          <p className="text-[8px] text-zinc-500 font-black uppercase tracking-[0.3em] mt-1">Control Panel</p>
         </div>
 
         <nav className="flex-1 space-y-2">
@@ -64,7 +79,7 @@ export default function AdminPage() {
             }`}
           >
             <Package size={18} />
-            footwear stock
+            Inventory
           </button>
 
           <button
@@ -74,7 +89,7 @@ export default function AdminPage() {
             }`}
           >
             <PlusCircle size={18} />
-            {editingProduct ? 'Edit Product' : 'Top Deals form'}
+            {editingProduct ? 'Edit Product' : 'Add Listing'}
           </button>
 
           <button
@@ -84,14 +99,17 @@ export default function AdminPage() {
             }`}
           >
             <SlidersHorizontal size={18} />
-            footwear form
+            General Info
           </button>
         </nav>
 
-        <div className="pt-10 border-t border-white/10 space-y-2">
-          <button className="w-full flex items-center gap-3 px-4 py-3 text-red-500 hover:bg-red-500/10 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">
+        <div className="pt-10 border-t border-white/10">
+          <button 
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-3 text-red-500 hover:bg-red-500/10 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+          >
             <LogOut size={16} />
-            Logout
+            Logout System
           </button>
         </div>
       </aside>
@@ -100,13 +118,14 @@ export default function AdminPage() {
       <main className="ml-64 flex-1 p-12">
         <div className="max-w-6xl mx-auto">
           
-          <header className="mb-12">
-            <h2 className="text-4xl font-black uppercase italic tracking-tighter">
+          <header className="mb-12 border-b border-zinc-100 pb-8">
+            <h2 className="text-5xl font-black uppercase italic tracking-tighter">
               {activeTab === 'inventory' && 'Live Inventory'}
-              {activeTab === 'add-product' && (editingProduct ? 'Update Product' : 'New Shoe Listing')}
-              {activeTab === 'general-settings' && 'System Configuration'}
-              {activeTab === 'orders' && 'Order Logistics'}
+              {activeTab === 'add-product' && (editingProduct ? 'Update Product' : 'New Listing')}
+              {activeTab === 'general-settings' && 'System Config'}
+              {activeTab === 'orders' && 'Logistics'}
             </h2>
+            <p className="text-zinc-400 text-xs font-bold uppercase tracking-widest mt-2">Manage your global store operations</p>
           </header>
 
           <div className="transition-all duration-300">
@@ -118,14 +137,12 @@ export default function AdminPage() {
             
             {activeTab === 'inventory' && (
               <div className="animate-in fade-in slide-in-from-bottom-4">
-                {/* ✅ Pass the Edit handler to the list */}
                 <AdminProductList onEdit={handleEditInit} />
               </div>
             )}
 
             {activeTab === 'add-product' && (
               <div className="animate-in fade-in slide-in-from-bottom-4">
-                {/* ✅ Pass editingProduct data and a success callback to the form */}
                 <AdminProductForm 
                   existingData={editingProduct} 
                   onSuccess={() => {
@@ -142,7 +159,6 @@ export default function AdminPage() {
               </div>
             )}
           </div>
-
         </div>
       </main>
     </div>

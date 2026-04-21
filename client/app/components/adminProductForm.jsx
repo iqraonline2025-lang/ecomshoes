@@ -95,9 +95,6 @@ const AdminProductForm = ({ existingData, onSuccess }) => {
     });
 
     try {
-      // ✅ LOGIC CHANGE: 
-      // If existingData exists -> PUT to /api/products/:id
-      // Else -> POST to /api/products/upload
       const endpoint = existingData 
         ? `${API_URL}/api/products/${existingData._id}` 
         : `${API_URL}/api/products/upload`;
@@ -108,7 +105,7 @@ const AdminProductForm = ({ existingData, onSuccess }) => {
       const response = await fetch(endpoint, {
         method: method,
         headers: {
-          'Authorization': `Bearer ${token}` // Added token for admin security
+          'Authorization': `Bearer ${token}` 
         },
         body: data,
       });
@@ -118,7 +115,6 @@ const AdminProductForm = ({ existingData, onSuccess }) => {
       if (response.ok && result.success) {
         setMessage(existingData ? 'Product updated!' : 'Product uploaded!');
         
-        // Trigger the success callback to go back to inventory list
         if (onSuccess) {
             setTimeout(() => onSuccess(), 1500); 
         }
@@ -189,12 +185,14 @@ const AdminProductForm = ({ existingData, onSuccess }) => {
             <input name="brand" placeholder="Nike" value={formData.brand} onChange={handleInputChange} className="admin-input" required />
           </div>
           <div className="space-y-1">
-            <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Sale Price ($)</label>
-            <input name="newPrice" type="number" placeholder="120" value={formData.newPrice} onChange={handleInputChange} className="admin-input" required />
+            {/* Changed from $ to £ */}
+            <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Sale Price (£)</label>
+            <input name="newPrice" type="number" placeholder="85" value={formData.newPrice} onChange={handleInputChange} className="admin-input" required />
           </div>
           <div className="space-y-1">
-            <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Original Price ($)</label>
-            <input name="oldPrice" type="number" placeholder="160" value={formData.oldPrice} onChange={handleInputChange} className="admin-input" />
+            {/* Changed from $ to £ */}
+            <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Original Price (£)</label>
+            <input name="oldPrice" type="number" placeholder="110" value={formData.oldPrice} onChange={handleInputChange} className="admin-input" />
           </div>
           <div className="space-y-1">
             <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Sizes (Comma Separated)</label>

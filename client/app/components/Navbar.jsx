@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, ShoppingCart, User, LogOut, Menu, X, Heart } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { googleLogout } from '@react-oauth/google';
 
@@ -58,7 +59,7 @@ const Navbar = () => {
   return (
     <header className="w-full bg-white sticky top-0 z-[999] shadow-sm font-sans">
       
-      {/* Top Banner - High Contrast */}
+      {/* Top Banner */}
       <div className="bg-black py-2.5 text-center text-[10px] font-black tracking-[0.25em] text-white uppercase">
         Free shipping over $150 • ROADKICKS Limited Drop
       </div>
@@ -76,10 +77,25 @@ const Navbar = () => {
             </button>
           </div>
 
-          {/* Logo */}
+          {/* Logo Section */}
           <div className="flex flex-1 justify-center md:justify-start">
-            <Link href="/" className="text-2xl font-black italic tracking-tighter text-zinc-900">
-              ROAD<span className="text-blue-600">KICKS</span>
+            <Link href="/" className="group flex items-center gap-3">
+              <div className="relative h-10 w-10 overflow-hidden rounded-lg bg-zinc-900 flex items-center justify-center group-hover:rotate-6 transition-transform duration-300">
+                <Image 
+                  src="/images/logo.jpeg" 
+                  alt="RK" 
+                  fill
+                  priority 
+                  className="object-cover"
+                />
+              </div>
+
+              <div className="flex items-baseline text-zinc-900">
+                <span className="text-3xl md:text-4xl font-black italic leading-none tracking-tighter drop-shadow-[0_0_1px_rgba(0,0,0,0.1)]">R</span>
+                <span className="text-xl md:text-2xl font-black italic tracking-tighter -ml-0.5">OAD</span>
+                <span className="text-3xl md:text-4xl font-black italic leading-none text-blue-600 ml-0.5 drop-shadow-[0_0_10px_rgba(37,99,235,0.2)]">K</span>
+                <span className="text-xl md:text-2xl font-black italic tracking-tighter -ml-0.5 text-blue-600">ICKS</span>
+              </div>
             </Link>
           </div>
 
@@ -88,7 +104,6 @@ const Navbar = () => {
             <Link href="/category" className="text-[13px] font-bold uppercase tracking-widest text-zinc-900 hover:text-blue-600 transition-colors">Footwear</Link>
             <Link href="/sale" className="text-[13px] font-bold uppercase tracking-widest text-red-600 hover:text-red-700 transition-colors">Sale</Link>
 
-            {/* Desktop Search Bar - Clearer UI */}
             <div className="relative min-w-[240px] group">
               <input
                 type="text"
@@ -135,7 +150,7 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Search - High Visibility */}
+      {/* Mobile Search Bar Dropdown */}
       <div className={`md:hidden bg-white border-b border-zinc-100 transition-all duration-300 ease-in-out ${isMobileSearchOpen ? "max-h-[80px] opacity-100" : "max-h-0 opacity-0"} overflow-hidden`}>
         <div className="p-4">
           <div className="relative">
@@ -155,9 +170,8 @@ const Navbar = () => {
       {/* Sidebar Overlay */}
       <div className={`fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity z-[1000] ${isMenuOpen ? "opacity-100 visible" : "opacity-0 invisible"}`} onClick={() => setIsMenuOpen(false)} />
 
-      {/* Sidebar - Switched to White/Black Scheme */}
+      {/* Sidebar Navigation */}
       <div className={`fixed top-0 left-0 h-full w-[320px] bg-white text-zinc-900 z-[1001] shadow-2xl transition-transform duration-500 ease-in-out ${isMenuOpen ? "translate-x-0" : "-translate-x-full"}`}>
-        
         <div className="p-6 border-b border-zinc-100 flex justify-between items-center">
             <span className="font-black italic text-xl tracking-tighter">MENU</span>
             <button onClick={() => setIsMenuOpen(false)} className="p-2 hover:bg-zinc-100 rounded-full transition-colors">
@@ -168,11 +182,9 @@ const Navbar = () => {
         <nav className="flex flex-col p-8 gap-8">
           <Link href="/" onClick={() => setIsMenuOpen(false)} className="text-2xl font-black uppercase tracking-tighter hover:text-blue-600 transition-colors">Home</Link>
           <Link href="/category" onClick={() => setIsMenuOpen(false)} className="text-2xl font-black uppercase tracking-tighter hover:text-blue-600 transition-colors">Footwear</Link>
-          
           {userData && (
             <Link href="/AccountPage" onClick={() => setIsMenuOpen(false)} className="text-2xl font-black uppercase tracking-tighter hover:text-blue-600 transition-colors">My Account</Link>
           )}
-
           <Link href="/sale" onClick={() => setIsMenuOpen(false)} className="text-2xl font-black uppercase tracking-tighter text-red-600 hover:text-red-700 transition-colors">Sale</Link>
         </nav>
 
@@ -188,7 +200,6 @@ const Navbar = () => {
           )}
         </div>
       </div>
-
     </header>
   );
 };
